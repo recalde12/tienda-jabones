@@ -1,5 +1,3 @@
-// src/context/CartContext.tsx
-
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useMemo } from 'react';
@@ -19,6 +17,7 @@ interface CartContextType {
   addToCart: (product: any) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, newQuantity: number) => void;
+  clearCart: () => void; // <--- ¡ESTA ES LA LÍNEA QUE FALTABA!
   totalPrice: number;
 }
 
@@ -45,12 +44,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // --- NUEVA FUNCIÓN DE QUITAR ---
+  // --- FUNCIÓN DE QUITAR ---
   const removeFromCart = (productId: number) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
-  // --- NUEVA FUNCIÓN DE ACTUALIZAR CANTIDAD ---
+  // --- FUNCIÓN DE ACTUALIZAR CANTIDAD ---
   const updateQuantity = (productId: number, newQuantity: number) => {
     if (newQuantity <= 0) {
       // Si la cantidad es 0 o menos, quitar el producto
@@ -64,12 +63,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // --- FUNCIÓN DE VACIAR CARRITO ---
   const clearCart = () => {
     setCart([]);
   };
 
-  // --- NUEVO CÁLCULO DE PRECIO TOTAL ---
-  // Usamos useMemo para que solo se recalcule si el carrito cambia
+  // --- CÁLCULO DE PRECIO TOTAL ---
   const totalPrice = useMemo(() => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   }, [cart]);
