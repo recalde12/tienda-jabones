@@ -58,16 +58,6 @@ export function HeroSlider() {
                   </div>
                 )}
 
-                {/* Contenido principal del slide */}
-                {slide.mainText && ( // Esta propiedad no está en tu array, pero si la añades, aparecerá
-                  <div className="flex flex-col items-center text-center -mt-16 z-20"> 
-                    <h1 className="text-5xl md:text-7xl font-bold drop-shadow-lg leading-tight">
-                      {slide.mainText}
-                    </h1>
-                  </div>
-                )}
-
-                {/* --- CAMBIO AQUÍ: Lógica condicional para el botón --- */}
                 
                 {/* 1. Botón en el CENTRO si es el primer slide (index === 0) */}
                 {index === 0 && (
