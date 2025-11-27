@@ -15,7 +15,6 @@ interface Product {
   stock: number;
 }
 
-// El componente recibe los productos ya separados por categoría
 interface ProductTabsProps {
   panales: Product[];
   alCorte: Product[];
@@ -23,7 +22,14 @@ interface ProductTabsProps {
   ProductosEspeciales: Product[];
 }
 
-// Componente reutilizable para la cuadrícula de productos
+// 1. Definimos las categorías aquí para no repetir código
+const categories = [
+  { id: 'panales', label: 'Panales' },
+  { id: 'al_corte', label: 'Al Corte' },
+  { id: 'cestas', label: 'Cestas' },
+  { id: 'ProductosEspeciales', label: 'Productos Especiales' },
+];
+
 function ProductGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
@@ -43,56 +49,82 @@ function ProductGrid({ products }: { products: Product[] }) {
 }
 
 export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: ProductTabsProps) {
-  // Estado para saber qué pestaña está activa
   const [activeTab, setActiveTab] = useState('panales');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Estado para abrir/cerrar el menú móvil
 
-  const getTabClass = (tabName: string) => {
-    const isActive = activeTab === tabName;
+  // Encontrar el nombre de la categoría activa para mostrarlo en el botón móvil
+  const activeLabel = categories.find(c => c.id === activeTab)?.label;
+
+  const handleTabClick = (id: string) => {
+    setActiveTab(id);
+    setIsDropdownOpen(false); // Cerrar el menú al seleccionar
+  };
+
+  const getTabClass = (tabId: string) => {
+    const isActive = activeTab === tabId;
     return isActive
-      ? 'bg-stone-700 text-white' 
-      : 'bg-white text-stone-700 hover:bg-stone-100';
+      ? 'bg-stone-700 text-white border-stone-700' 
+      : 'bg-white text-stone-700 hover:bg-stone-100 border-stone-200';
   };
 
   return (
-    <div className="w-full"> {/* Aseguramos ancho completo */}
+    <div className="w-full">
       
-      {/* --- BARRA DE PESTAÑAS CON SCROLL MEJORADO --- */}
-      <div className="flex w-full overflow-x-auto flex-nowrap gap-3 md:gap-4 mb-8 pb-4 px-4 md:justify-center no-scrollbar">
+      {/* --- VISTA MÓVIL: MENÚ DESPLEGABLE (Visible solo en md:hidden) --- */}
+      <div className="md:hidden relative mb-8 px-4">
+        <label className="block text-stone-600 text-sm font-semibold mb-2">
+          Selecciona una categoría:
+        </label>
         
+        {/* Botón principal del desplegable */}
         <button
-          onClick={() => setActiveTab('panales')}
-          className={`px-5 py-2 md:px-6 md:py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 border border-stone-200 ${getTabClass('panales')}`}
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="w-full flex justify-between items-center bg-white border border-stone-300 text-stone-800 font-semibold py-3 px-4 rounded-lg shadow-sm"
         >
-          Panales
-        </button>
-        
-        <button
-          onClick={() => setActiveTab('al_corte')}
-          className={`px-5 py-2 md:px-6 md:py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 border border-stone-200 ${getTabClass('al_corte')}`}
-        >
-          Al Corte
-        </button>
-        
-        <button
-          onClick={() => setActiveTab('cestas')}
-          className={`px-5 py-2 md:px-6 md:py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 border border-stone-200 ${getTabClass('cestas')}`}
-        >
-          Cestas
-        </button>
-        
-        {/* Este es el que se te cortaba */}
-        <button
-          onClick={() => setActiveTab('ProductosEspeciales')}
-          className={`px-5 py-2 md:px-6 md:py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 border border-stone-200 ${getTabClass('ProductosEspeciales')}`}
-        >
-          Productos Especiales
+          <span>{activeLabel}</span>
+          {/* Icono de flecha que gira si está abierto */}
+          <svg 
+            className={`w-5 h-5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </button>
 
-        {/* Truco: Div invisible al final para asegurar margen derecho al hacer scroll */}
-        <div className="w-2 flex-shrink-0 md:hidden"></div> 
+        {/* Lista de opciones (Aparece solo si isDropdownOpen es true) */}
+        {isDropdownOpen && (
+          <div className="absolute top-full left-4 right-4 mt-2 bg-white border border-stone-200 rounded-lg shadow-xl z-20 overflow-hidden">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleTabClick(cat.id)}
+                className={`w-full text-left py-3 px-4 border-b border-stone-100 last:border-none hover:bg-stone-50 transition-colors ${
+                  activeTab === cat.id ? 'bg-stone-100 font-bold text-stone-900' : 'text-stone-600'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Contenido de las pestañas */}
+
+      {/* --- VISTA DE ESCRITORIO: PESTAÑAS (Oculto en móvil 'hidden md:flex') --- */}
+      <div className="hidden md:flex w-full justify-center gap-4 mb-12 pb-4">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveTab(cat.id)}
+            className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors border ${getTabClass(cat.id)}`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+
+      {/* --- CONTENIDO (Igual para todos) --- */}
       <div>
         {activeTab === 'panales' && <ProductGrid products={panales} />}
         {activeTab === 'al_corte' && <ProductGrid products={alCorte} />}
