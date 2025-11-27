@@ -43,6 +43,7 @@ function ProductGrid({ products }: { products: Product[] }) {
 }
 
 export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: ProductTabsProps) {
+  // Estado para saber qué pestaña está activa
   const [activeTab, setActiveTab] = useState('panales');
 
   const getTabClass = (tabName: string) => {
@@ -53,43 +54,42 @@ export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: P
   };
 
   return (
-    <div>
-      {/* --- CAMBIOS PARA MÓVIL (Scroll Horizontal) --- */}
-      {/* 1. overflow-x-auto: Permite deslizar si no caben
-          2. flex-nowrap: Obliga a que estén en una sola fila
-          3. justify-start md:justify-center: En móvil alineado al inicio, en PC centrado
-          4. pb-4: Espacio extra abajo para que se vea bien al deslizar
-      */}
-      <div className="flex overflow-x-auto flex-nowrap justify-start md:justify-center gap-4 mb-12 pb-4 px-2">
+    <div className="w-full"> {/* Aseguramos ancho completo */}
+      
+      {/* --- BARRA DE PESTAÑAS CON SCROLL MEJORADO --- */}
+      <div className="flex w-full overflow-x-auto flex-nowrap gap-3 md:gap-4 mb-8 pb-4 px-4 md:justify-center no-scrollbar">
         
         <button
           onClick={() => setActiveTab('panales')}
-          // Added: whitespace-nowrap flex-shrink-0
-          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 ${getTabClass('panales')}`}
+          className={`px-5 py-2 md:px-6 md:py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 border border-stone-200 ${getTabClass('panales')}`}
         >
           Panales
         </button>
         
         <button
           onClick={() => setActiveTab('al_corte')}
-          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 ${getTabClass('al_corte')}`}
+          className={`px-5 py-2 md:px-6 md:py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 border border-stone-200 ${getTabClass('al_corte')}`}
         >
           Al Corte
         </button>
         
         <button
           onClick={() => setActiveTab('cestas')}
-          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 ${getTabClass('cestas')}`}
+          className={`px-5 py-2 md:px-6 md:py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 border border-stone-200 ${getTabClass('cestas')}`}
         >
           Cestas
         </button>
         
+        {/* Este es el que se te cortaba */}
         <button
           onClick={() => setActiveTab('ProductosEspeciales')}
-          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 ${getTabClass('ProductosEspeciales')}`}
+          className={`px-5 py-2 md:px-6 md:py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 border border-stone-200 ${getTabClass('ProductosEspeciales')}`}
         >
           Productos Especiales
         </button>
+
+        {/* Truco: Div invisible al final para asegurar margen derecho al hacer scroll */}
+        <div className="w-2 flex-shrink-0 md:hidden"></div> 
       </div>
 
       {/* Contenido de las pestañas */}
