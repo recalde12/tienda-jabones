@@ -1,6 +1,6 @@
 // src/components/ProductTabs.tsx
 
-"use client"; // ¡Importante! Este componente necesita estado
+"use client";
 
 import { useState } from 'react';
 import { ProductCard } from '@/components/ProductCard';
@@ -43,41 +43,50 @@ function ProductGrid({ products }: { products: Product[] }) {
 }
 
 export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: ProductTabsProps) {
-  // Estado para saber qué pestaña está activa
   const [activeTab, setActiveTab] = useState('panales');
 
   const getTabClass = (tabName: string) => {
     const isActive = activeTab === tabName;
     return isActive
-      ? 'bg-stone-700 text-white' // Estilo de la pestaña activa
-      : 'bg-white text-stone-700 hover:bg-stone-100'; // Estilo de la inactiva
+      ? 'bg-stone-700 text-white' 
+      : 'bg-white text-stone-700 hover:bg-stone-100';
   };
 
   return (
     <div>
-      {/* Contenedor de los botones de las pestañas */}
-      <div className="flex justify-center space-x-2 md:space-x-4 mb-12">
+      {/* --- CAMBIOS PARA MÓVIL (Scroll Horizontal) --- */}
+      {/* 1. overflow-x-auto: Permite deslizar si no caben
+          2. flex-nowrap: Obliga a que estén en una sola fila
+          3. justify-start md:justify-center: En móvil alineado al inicio, en PC centrado
+          4. pb-4: Espacio extra abajo para que se vea bien al deslizar
+      */}
+      <div className="flex overflow-x-auto flex-nowrap justify-start md:justify-center gap-4 mb-12 pb-4 px-2">
+        
         <button
           onClick={() => setActiveTab('panales')}
-          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors ${getTabClass('panales')}`}
+          // Added: whitespace-nowrap flex-shrink-0
+          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 ${getTabClass('panales')}`}
         >
           Panales
         </button>
+        
         <button
           onClick={() => setActiveTab('al_corte')}
-          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors ${getTabClass('al_corte')}`}
+          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 ${getTabClass('al_corte')}`}
         >
           Al Corte
         </button>
+        
         <button
           onClick={() => setActiveTab('cestas')}
-          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors ${getTabClass('cestas')}`}
+          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 ${getTabClass('cestas')}`}
         >
           Cestas
         </button>
+        
         <button
           onClick={() => setActiveTab('ProductosEspeciales')}
-          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors ${getTabClass('ProductosEspeciales')}`}
+          className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors whitespace-nowrap flex-shrink-0 ${getTabClass('ProductosEspeciales')}`}
         >
           Productos Especiales
         </button>
@@ -85,7 +94,6 @@ export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: P
 
       {/* Contenido de las pestañas */}
       <div>
-        {/* Mostramos el contenido solo si la pestaña está activa */}
         {activeTab === 'panales' && <ProductGrid products={panales} />}
         {activeTab === 'al_corte' && <ProductGrid products={alCorte} />}
         {activeTab === 'cestas' && <ProductGrid products={cestas} />}
