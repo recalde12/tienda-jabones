@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react'; // <--- Importamos useEffect
 import type { Session } from '@supabase/supabase-js';
 
 export function Header({ session }: { session: Session | null }) {
@@ -15,10 +16,29 @@ export function Header({ session }: { session: Session | null }) {
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
+  // === CAMBIO CLAVE: Escuchar cambios de sesión y refrescar ===
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, _session) => {
+      // Si el evento es SIGNED_IN (ej: volviendo de Google), refrescamos la página
+      // para que el servidor lea la cookie y actualice la UI
+      if (event === 'SIGNED_IN') {
+        router.refresh();
+      }
+      if (event === 'SIGNED_OUT') {
+        router.refresh();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase, router]);
+  // ==========================================================
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/');
-    router.refresh();
+    router.push('/'); 
+    router.refresh(); 
   };
 
   return (
