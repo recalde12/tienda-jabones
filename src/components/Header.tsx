@@ -98,6 +98,11 @@ export function Header({ session }: { session: Session | null }) {
 
             {session ? (
               <>
+               <li>
+                  <Link href="/perfil" className="text-stone-300 hover:text-white transition-colors">
+                    Mi Perfil
+                  </Link>
+                </li>
                 <li>
                   <Link href="/pedidos" className="block text-stone-300 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
                     Mis Pedidos
