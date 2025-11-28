@@ -85,14 +85,6 @@ export function HeroSlider() {
                 )}
 
                 {/* Contenido principal del slide */}
-                {slide.mainText && (
-                  <div className="flex flex-col items-center text-center -mt-16 z-20"> 
-                    {/* AJUSTE 5: Texto principal responsive */}
-                    <h1 className="text-4xl md:text-7xl font-bold drop-shadow-lg leading-tight px-2">
-                      {slide.mainText}
-                    </h1>
-                  </div>
-                )}
 
                 {/* --- Botones --- */}
                 
