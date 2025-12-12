@@ -10,11 +10,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-// --- IMPORTANTE: Usamos la Service Role Key para tener permisos de admin ---
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 const ownerEmail = 'laflordemalaura@gmail.com'; // <--- PON AQUÍ TU EMAIL REAL
 const senderEmail = 'Pedidos Malaura <onboarding@resend.dev>'; // O tu dominio verificado
@@ -23,6 +18,11 @@ const senderEmail = 'Pedidos Malaura <onboarding@resend.dev>'; // O tu dominio v
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function POST(request: Request) {
+  
+  const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
   const body = await request.text();
   const signature = headers().get('stripe-signature') as string;
 
