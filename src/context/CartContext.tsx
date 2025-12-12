@@ -9,15 +9,23 @@ interface CartItem {
   price: number;
   image_url: string;
   quantity: number;
+  selectedColor?: string | null;
+  selectedFinish?: string | null; // <--- NUEVO CAMPO: Guardamos el acabado (Mate/Transparente)
 }
 
 // Definimos qué valores y funciones tendrá nuestro contexto
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: any) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, newQuantity: number) => void;
-  clearCart: () => void; // <--- ¡ESTA ES LA LÍNEA QUE FALTABA!
+  // Actualizamos las funciones para que acepten el color Y el acabado
+  addToCart: (product: any, color?: string | null, finish?: string | null) => void;
+  removeFromCart: (productId: number, color?: string | null, finish?: string | null) => void;
+  updateQuantity: (
+    productId: number, 
+    color: string | null | undefined, 
+    finish: string | null | undefined, 
+    newQuantity: number
+  ) => void;
+  clearCart: () => void;
   totalPrice: number;
 }
 
@@ -28,36 +36,57 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  // --- FUNCIÓN DE AÑADIR ---
-  const addToCart = (product: any) => {
+  // --- FUNCIÓN DE AÑADIR (Actualizada) ---
+  const addToCart = (product: any, color: string | null = null, finish: string | null = null) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
+      // Buscamos si ya existe un item con el MISMO id, MISMO color Y MISMO acabado
+      const existingItem = prevCart.find((item) => 
+        item.id === product.id && 
+        item.selectedColor === color && 
+        item.selectedFinish === finish
+      );
+
       if (existingItem) {
+        // Si existe la combinación exacta, aumentamos cantidad
         return prevCart.map((item) =>
-          item.id === product.id
+          (item.id === product.id && item.selectedColor === color && item.selectedFinish === finish)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
-        return [...prevCart, { ...product, quantity: 1 }];
+        // Si es una combinación nueva, lo añadimos
+        return [...prevCart, { 
+          ...product, 
+          quantity: 1, 
+          selectedColor: color, 
+          selectedFinish: finish 
+        }];
       }
     });
   };
 
-  // --- FUNCIÓN DE QUITAR ---
-  const removeFromCart = (productId: number) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+  // --- FUNCIÓN DE QUITAR (Actualizada) ---
+  const removeFromCart = (productId: number, color: string | null = null, finish: string | null = null) => {
+    // Filtramos para quitar solo el que coincida en ID, Color y Acabado
+    setCart((prevCart) => prevCart.filter((item) => 
+      !(item.id === productId && item.selectedColor === color && item.selectedFinish === finish)
+    ));
   };
 
-  // --- FUNCIÓN DE ACTUALIZAR CANTIDAD ---
-  const updateQuantity = (productId: number, newQuantity: number) => {
+  // --- FUNCIÓN DE ACTUALIZAR CANTIDAD (Actualizada) ---
+  const updateQuantity = (
+    productId: number, 
+    color: string | null = null, 
+    finish: string | null = null, 
+    newQuantity: number
+  ) => {
     if (newQuantity <= 0) {
-      // Si la cantidad es 0 o menos, quitar el producto
-      removeFromCart(productId);
+      removeFromCart(productId, color, finish);
     } else {
       setCart((prevCart) =>
         prevCart.map((item) =>
-          item.id === productId ? { ...item, quantity: newQuantity } : item
+          (item.id === productId && item.selectedColor === color && item.selectedFinish === finish)
+            ? { ...item, quantity: newQuantity } : item
         )
       );
     }
@@ -80,7 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cart, 
         addToCart, 
         removeFromCart, 
-        updateQuantity,
+        updateQuantity, 
         clearCart,
         totalPrice 
       }}
