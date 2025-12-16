@@ -12,7 +12,7 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 
 const ownerEmail = 'laflordemalaura@gmail.com'; // <--- PON AQUÍ TU EMAIL REAL
-const senderEmail = 'Pedidos Malaura <onboarding@resend.dev>'; // O tu dominio verificado
+const senderEmail = 'Pedidos Malaura <pedidos@laflordemalaura.com>'; // O tu dominio verificado
 
 // Función de espera (para dar tiempo a que se guarde el pedido en la BD)
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
