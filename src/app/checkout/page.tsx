@@ -1,5 +1,3 @@
-// src/app/checkout/page.tsx
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -7,11 +5,12 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; // ¡NUEVO!
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-// --- El componente del formulario (CheckoutForm) se queda igual que antes ---
-// ... (Puedes copiar el componente 'CheckoutForm' entero que te di en el paso anterior)
-// ... (Asegúrate de que está aquí, justo encima de 'CheckoutPage')
+// --- Constantes de Envío (Deben coincidir con tu lógica de negocio) ---
+const COSTO_ENVIO = 4.50;
+const UMBRAL_ENVIO_GRATIS = 40;
+
 function CheckoutForm() {
   const stripe = useStripe();
   const elements = useElements();
@@ -25,7 +24,13 @@ function CheckoutForm() {
     name: '',
     email: '',
     address: '',
+    city: '',     // Agregado campo ciudad para mejor envío
+    postalCode: '' // Agregado código postal
   });
+
+  // --- Lógica de cálculo de precios ---
+  const precioEnvio = totalPrice > UMBRAL_ENVIO_GRATIS ? 0 : COSTO_ENVIO;
+  const precioFinal = totalPrice + precioEnvio;
 
   const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingInfo({ ...shippingInfo, [e.target.name]: e.target.value });
@@ -35,38 +40,45 @@ function CheckoutForm() {
     e.preventDefault();
 
     if (!stripe || !elements) return;
+    
+    // Validación básica
     if (!shippingInfo.name || !shippingInfo.email || !shippingInfo.address) {
-      setMessage("Por favor, rellena todos los datos de envío.");
+      setMessage("Por favor, rellena todos los datos de envío obligatorios.");
       return;
     }
 
     setIsLoading(true);
 
+    // 1. Confirmar pago con Stripe
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: {},
+      confirmParams: {}, // No redirigimos automáticamente para poder guardar en Supabase primero
       redirect: 'if_required'
     });
 
     if (error) {
-      setMessage(error.message || "Ocurrió un error inesperado.");
+      setMessage(error.message || "Ocurrió un error inesperado en el pago.");
       setIsLoading(false);
       return;
     }
 
+    // 2. Si el pago fue exitoso, guardar en Supabase
     if (paymentIntent && paymentIntent.status === 'succeeded') {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Usuario no autenticado. El pago se realizó pero el pedido no se pudo guardar.");
+        
+        // Nota: Si permites compra como invitado, quita la validación estricta de usuario
+        if (!user) throw new Error("Usuario no autenticado.");
 
+        // Insertar Pedido
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
           .insert({
             user_id: user.id,
             customer_name: shippingInfo.name,
             customer_email: shippingInfo.email,
-            shipping_address: shippingInfo.address,
-            total_amount: totalPrice,
+            shipping_address: `${shippingInfo.address}, ${shippingInfo.postalCode}, ${shippingInfo.city}`, // Dirección completa
+            total_amount: precioFinal, // ¡IMPORTANTE! Guardamos el precio CON envío
             stripe_payment_intent_id: paymentIntent.id,
             status: 'paid',
           })
@@ -74,8 +86,9 @@ function CheckoutForm() {
           .single();
 
         if (orderError) throw orderError;
-        if (!orderData) throw new Error("No se pudo crear el pedido.");
+        if (!orderData) throw new Error("No se pudo crear el pedido en la base de datos.");
 
+        // Insertar Items del pedido
         const orderItems = cart.map(item => ({
           order_id: orderData.id,
           product_id: item.id,
@@ -89,88 +102,131 @@ function CheckoutForm() {
 
         if (itemsError) throw itemsError;
 
+        // Todo correcto
         setMessage("¡Pago realizado con éxito!");
         clearCart();
-        router.push('/pedidos');
+        router.push('/pedidos'); // O una página de "Gracias por tu compra"
 
       } catch (dbError: any) {
         console.error("Error guardando en Supabase:", dbError);
-        setMessage(`Pago exitoso, pero hubo un error al guardar tu pedido: ${dbError.message}`);
+        setMessage(`Pago exitoso en Stripe, pero error guardando pedido: ${dbError.message}. Contáctanos.`);
       }
     } else {
-      setMessage("El pago no se completó.");
+      setMessage("El pago no se ha completado. Inténtalo de nuevo.");
     }
 
     setIsLoading(false);
   };
 
+  const formatMoney = (amount: number) => 
+    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+
   return (
-    <form id="payment-form" onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Datos de Envío</h3>
-        <div className="space-y-4">
-          <input type="text" name="name" placeholder="Nombre Completo" onChange={handleShippingChange} className="w-full p-2 border rounded" required />
-          <input type="email" name="email" placeholder="Email" onChange={handleShippingChange} className="w-full p-2 border rounded" required />
-          <input type="text" name="address" placeholder="Dirección de Envío" onChange={handleShippingChange} className="w-full p-2 border rounded" required />
+    <form id="payment-form" onSubmit={handleSubmit} className="space-y-6 w-full">
+      
+      {/* --- RESUMEN DE PAGO (NUEVO) --- */}
+      <div className="bg-stone-50 p-4 rounded-lg border border-stone-200 text-sm">
+        <h4 className="font-semibold text-stone-700 mb-2">Resumen</h4>
+        <div className="flex justify-between mb-1">
+          <span>Subtotal</span>
+          <span>{formatMoney(totalPrice)}</span>
+        </div>
+        <div className="flex justify-between mb-2 pb-2 border-b border-stone-200">
+          <span>Envío</span>
+          <span className={precioEnvio === 0 ? "text-green-600 font-bold" : ""}>
+            {precioEnvio === 0 ? "Gratis" : formatMoney(precioEnvio)}
+          </span>
+        </div>
+        <div className="flex justify-between font-bold text-lg text-stone-900">
+          <span>Total a Pagar</span>
+          <span>{formatMoney(precioFinal)}</span>
         </div>
       </div>
+
+      {/* --- DATOS DE ENVÍO --- */}
       <div>
-        <h3 className="text-lg font-semibold mb-2">Datos de Pago</h3>
-        <PaymentElement id="payment-element" />
+        <h3 className="text-lg font-semibold mb-3">Datos de Envío</h3>
+        <div className="space-y-3">
+          <input type="text" name="name" placeholder="Nombre Completo" onChange={handleShippingChange} className="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
+          <input type="email" name="email" placeholder="Email" onChange={handleShippingChange} className="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
+          <input type="text" name="address" placeholder="Dirección y Número" onChange={handleShippingChange} className="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
+          
+          <div className="flex gap-3">
+            <input type="text" name="postalCode" placeholder="C.P." onChange={handleShippingChange} className="w-1/3 p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
+            <input type="text" name="city" placeholder="Ciudad / Provincia" onChange={handleShippingChange} className="w-2/3 p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
+          </div>
+        </div>
       </div>
+
+      {/* --- DATOS DE PAGO STRIPE --- */}
+      <div>
+        <h3 className="text-lg font-semibold mb-3">Tarjeta de Crédito</h3>
+        <div className="border p-3 rounded-md bg-white">
+          <PaymentElement id="payment-element" />
+        </div>
+      </div>
+
       <button 
         disabled={isLoading || !stripe || !elements} 
         id="submit"
-        className="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors mt-6 disabled:bg-gray-400"
+        className="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors mt-6 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
       >
-        <span>{isLoading ? "Procesando..." : `Pagar ${totalPrice.toFixed(2)} €`}</span>
+        <span>{isLoading ? "Procesando..." : `Pagar ${formatMoney(precioFinal)}`}</span>
       </button>
-      {message && <div className="text-red-500 mt-4 text-center">{message}</div>}
+
+      {message && (
+        <div className={`mt-4 p-3 rounded text-center text-sm ${message.includes("éxito") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          {message}
+        </div>
+      )}
     </form>
   );
 }
 
-// --- Componente principal de la página ---
+// --- Componente principal ---
 
-// Cargamos Stripe
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
 export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState("");
-  const { cart, totalPrice } = useCart();
+  const { cart, totalPrice } = useCart(); // totalPrice aquí es solo productos
   const router = useRouter();
   const supabase = createClientComponentClient();
-  const [isUserChecked, setIsUserChecked] = useState(false); // Estado de carga
+  const [isUserChecked, setIsUserChecked] = useState(false);
 
   useEffect(() => {
-    // --- ¡NUEVA LÓGICA DE COMPROBACIÓN! ---
     async function checkUserAndCart() {
-      // 1. Comprobar si el usuario está logueado
+      // 1. Auth check
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        // Si no hay sesión, redirigir al login
         router.push('/login');
         return;
       }
 
-      // 2. Comprobar si el carrito está vacío
+      // 2. Cart check
       if (cart.length === 0) {
         router.push('/productos');
         return;
       }
 
-      // 3. Si todo está bien, crear el Payment Intent
-      fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart: cart }),
-      })
-        .then((res) => res.json())
-        .then((data) => setClientSecret(data.clientSecret));
+      // 3. Crear Payment Intent en el servidor
+      // IMPORTANTE: El servidor recalculará el total incluyendo envío
+      try {
+        const res = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cart }), // Enviamos items, no solo cart
+        });
+        
+        const data = await res.json();
+        setClientSecret(data.clientSecret);
+      } catch (error) {
+        console.error("Error iniciando pago:", error);
+      }
       
-      setIsUserChecked(true); // Marcamos que la comprobación ha terminado
+      setIsUserChecked(true);
     }
 
     checkUserAndCart();
@@ -178,25 +234,41 @@ export default function CheckoutPage() {
 
   const options = {
     clientSecret,
-    appearance: { theme: 'stripe' as const },
+    appearance: { 
+        theme: 'stripe' as const,
+        variables: {
+            colorPrimary: '#16a34a', // Verde Tailwind
+        }
+    },
   };
 
-  // Mostrar un "Cargando..." mientras se comprueba el usuario
   if (!isUserChecked) {
-    return <p className="text-center py-20">Comprobando sesión...</p>;
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-stone-50">
+            <p className="text-stone-600 animate-pulse">Cargando pasarela de pago...</p>
+        </div>
+    );
   }
 
   return (
-    <div className="container mx-auto max-w-lg px-4 py-12">
-      <h1 className="text-3xl font-bold text-center mb-8">Completar Pedido</h1>
-      <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-        {clientSecret ? (
-          <Elements options={options} stripe={stripePromise}>
-            <CheckoutForm />
-          </Elements>
-        ) : (
-          <p className="text-center py-10">Cargando formulario de pago...</p>
-        )}
+    <div className="bg-stone-50 min-h-screen py-10 px-4">
+      <div className="container mx-auto max-w-md bg-white rounded-xl shadow-xl overflow-hidden">
+        <div className="bg-stone-800 p-6 text-white text-center">
+            <h1 className="text-2xl font-bold">Completar Pedido</h1>
+            <p className="text-sm text-stone-300 mt-1">Finaliza tu compra de forma segura</p>
+        </div>
+        
+        <div className="p-6 md:p-8">
+            {clientSecret ? (
+            <Elements options={options} stripe={stripePromise}>
+                <CheckoutForm />
+            </Elements>
+            ) : (
+            <div className="flex justify-center py-10">
+                <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            )}
+        </div>
       </div>
     </div>
   );
