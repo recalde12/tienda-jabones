@@ -1,5 +1,3 @@
-// src/app/carrito/page.tsx
-
 "use client";
 
 import { useCart } from "@/context/CartContext";
@@ -8,6 +6,16 @@ import Link from "next/link";
 
 export default function CarritoPage() {
   const { cart, removeFromCart, updateQuantity, totalPrice } = useCart();
+
+  // --- LÓGICA DE ENVÍO ---
+  const COSTO_ENVIO = 4.50;
+  const UMBRAL_ENVIO_GRATIS = 40;
+
+  // Si el total es MAYOR a 40, el envío es 0, si no, es 4.50
+  const precioEnvio = totalPrice > UMBRAL_ENVIO_GRATIS ? 0 : COSTO_ENVIO;
+
+  // El total final es la suma de los productos + el envío calculado
+  const precioFinal = totalPrice + precioEnvio;
 
   return (
     <div className="bg-stone-50 min-h-screen">
@@ -31,9 +39,12 @@ export default function CarritoPage() {
             
             <div className="lg:col-span-2 space-y-4">
               {cart.map((item) => (
-                // Key única combinando todo
-                <div key={`${item.id}-${item.selectedColor}-${item.selectedFinish}`} className="flex items-center bg-white p-4 rounded-lg shadow-md">
-                  <div className="relative w-24 h-24 rounded-md overflow-hidden mr-4 flex-shrink-0">
+                <div 
+                  key={`${item.id}-${item.selectedColor}-${item.selectedFinish}`} 
+                  className="flex flex-col md:flex-row items-center bg-white p-4 rounded-lg shadow-md"
+                >
+                  {/* Imagen */}
+                  <div className="relative w-24 h-24 rounded-md overflow-hidden flex-shrink-0 mb-4 md:mb-0 md:mr-4">
                     <Image
                       src={item.image_url}
                       alt={item.name}
@@ -41,10 +52,11 @@ export default function CarritoPage() {
                       style={{ objectFit: 'cover' }}
                     />
                   </div>
-                  <div className="flex-grow">
+                  
+                  {/* Detalles */}
+                  <div className="flex-grow w-full md:w-auto text-center md:text-left mb-4 md:mb-0">
                     <h2 className="text-lg font-semibold">{item.name}</h2>
                     
-                    {/* --- MOSTRAR OPCIONES --- */}
                     <div className="flex flex-col text-sm text-stone-500 mt-1">
                       {item.selectedColor && (
                         <span>Color: <span className="font-semibold text-stone-700">{item.selectedColor}</span></span>
@@ -59,7 +71,8 @@ export default function CarritoPage() {
                     </p>
                   </div>
                   
-                  <div className="flex items-center space-x-3">
+                  {/* Controles Cantidad */}
+                  <div className="flex items-center space-x-3 mb-4 md:mb-0">
                     <button 
                       onClick={() => updateQuantity(item.id, item.selectedColor, item.selectedFinish, item.quantity - 1)}
                       className="bg-gray-200 text-gray-700 h-8 w-8 rounded-full font-bold hover:bg-gray-300 flex items-center justify-center"
@@ -74,10 +87,12 @@ export default function CarritoPage() {
                       +
                     </button>
                   </div>
-                  <div className="ml-6">
+
+                  {/* Botón Quitar */}
+                  <div className="md:ml-6">
                     <button 
                       onClick={() => removeFromCart(item.id, item.selectedColor, item.selectedFinish)}
-                      className="text-red-500 hover:text-red-700 font-semibold"
+                      className="text-red-500 hover:text-red-700 font-semibold border border-red-200 md:border-none px-4 py-1 rounded md:p-0"
                     >
                       Quitar
                     </button>
@@ -86,23 +101,43 @@ export default function CarritoPage() {
               ))}
             </div>
 
+            {/* --- SECCIÓN RESUMEN ACTUALIZADA --- */}
             <div className="lg:col-span-1">
               <div className="bg-white p-6 rounded-lg shadow-md sticky top-28">
                 <h2 className="text-2xl font-semibold mb-4">Resumen del Pedido</h2>
+                
+                {/* Subtotal */}
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-semibold">
                     {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalPrice)}
                   </span>
                 </div>
+                
+                {/* Envío Dinámico */}
                 <div className="flex justify-between mb-4">
                   <span className="text-gray-600">Envío</span>
-                  <span className="font-semibold">Gratis</span>
+                  <span className={`font-semibold ${precioEnvio === 0 ? 'text-green-600' : ''}`}>
+                    {precioEnvio === 0 
+                      ? "Gratis" 
+                      : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(precioEnvio)
+                    }
+                  </span>
                 </div>
+                
+                {/* Mensaje de cuánto falta para envío gratis (Opcional pero recomendado) */}
+                {precioEnvio > 0 && (
+                   <div className="text-xs text-stone-500 mb-4 text-right">
+                     Te faltan {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(UMBRAL_ENVIO_GRATIS - totalPrice)} para envío gratis.
+                   </div>
+                )}
+
+                {/* Total Final */}
                 <div className="border-t border-gray-200 pt-4 flex justify-between items-center">
                   <span className="text-xl font-bold text-gray-900">Total</span>
                   <span className="text-xl font-bold text-gray-900">
-                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalPrice)}
+                    {/* Aquí usamos precioFinal en lugar de totalPrice */}
+                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(precioFinal)}
                   </span>
                 </div>
                 
