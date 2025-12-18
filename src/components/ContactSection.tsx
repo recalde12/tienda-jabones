@@ -4,15 +4,22 @@ export function ContactSection() {
   // --- ¡Personaliza esta información! ---
   const storeAddress = "Nueva Imagen Peluqueros, Av. del Alcalde Antonio Chapado, 29, S.M de la Vega Madrid";
   const contactEmail = "laflordemalaura@gmail.com";
-  const phoneStore = "669788574";
-  const phoneWhatsApp = "669788574";
+  
+  // Teléfonos
+  const phoneStore = "669 78 85 74";      // Teléfono 1
+  const phoneStore2 = "619 32 64 49";     // <--- PON AQUÍ EL SEGUNDO TELÉFONO
+  const phoneWhatsApp = "669 78 85 74";   // Teléfono para WhatsApp
+  const phoneWhatsApp2 = "619 32 64 49";
+  // Instagram
+  const instagramHandle = "flordemalaura"; // <--- PON AQUÍ TU USUARIO DE INSTAGRAM (sin @)
+  const instagramUrl = `https://instagram.com/${instagramHandle}`;
+
   const mapEmbedCode = `
 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1902.4359717900354!2d-3.575681434833237!3d40.20747049350152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd42177c087963f5%3A0xaa1ff7a205e0ac6b!2sNueva%20Imagen%20Peluqueros!5e1!3m2!1ses!2ses!4v1761570020529!5m2!1ses!2ses" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
   `;
-  // --- ^ Reemplaza el 'mapEmbedCode' con el código que copiaste de Google Maps ^ ---
 
   return (
-    <section className="bg-stone-300 py-16 sm:py-24 text-stone-800'">
+    <section className="bg-stone-300 py-16 sm:py-24 text-stone-800">
       <div className="container mx-auto px-4">
         {/* Layout de 2 columnas en escritorio, 1 en móvil */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
@@ -29,10 +36,9 @@ export function ContactSection() {
               {storeAddress}
             </p>
             
-            {/* Contenedor del Mapa (para hacerlo responsive) */}
+            {/* Contenedor del Mapa */}
             <div 
               className="aspect-[16/9] w-full overflow-hidden rounded-lg shadow-lg border border-gray-200"
-              // Usamos dangerouslySetInnerHTML para renderizar el <iframe>
               dangerouslySetInnerHTML={{ __html: mapEmbedCode }}
             />
           </div>
@@ -46,13 +52,13 @@ export function ContactSection() {
               Para cualquier duda sobre tus pedidos, ingredientes o talleres, no dudes en escribirnos o llamarnos.
             </p>
             
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Email */}
               <div>
-                <h3 className="text-xl font-semibold text-gray-600">
+                <h3 className="text-xl font-semibold text-gray-600 flex items-center gap-2">
                   📧 Email
                 </h3>
-                <p className="text-lg text-gray-600 mt-1">
+                <p className="text-lg text-gray-600 mt-1 mb-2">
                   Respondemos en menos de 24h:
                 </p>
                 <a 
@@ -65,25 +71,82 @@ export function ContactSection() {
               
               {/* Teléfonos */}
               <div>
-                <h3 className="text-xl font-semibold text-gray-600">
+                <h3 className="text-xl font-semibold text-gray-600 flex items-center gap-2">
                   📱 Teléfonos
                 </h3>
-                <p className="text-lg text-gray-600 mt-1">
+                <p className="text-lg text-gray-600 mt-1 mb-2">
                   Llámanos (L-V de 10h a 18h):
                 </p>
+                
+                <div className="flex flex-col gap-2">
+                  {/* Teléfono 1 */}
+                  <a 
+                    href={`tel:${phoneStore.replace(/\s/g, '')}`}
+                    className="text-lg text-green-600 hover:text-green-700 font-medium w-fit"
+                  >
+                    {phoneStore}
+                  </a>
+
+                  {/* Teléfono 2 (Nuevo) */}
+                  <a 
+                    href={`tel:${phoneStore2.replace(/\s/g, '')}`}
+                    className="text-lg text-green-600 hover:text-green-700 font-medium w-fit"
+                  >
+                    {phoneStore2}
+                  </a>
+
+                  {/* WhatsApp */}
+                  <a 
+                    href={`https://wa.me/${phoneWhatsApp.replace(/\s/g, '')}`}
+                    className="flex items-center gap-2 text-lg text-green-600 hover:text-green-700 font-medium mt-2 w-fit"
+                  >
+                    {/* Icono pequeño de WhatsApp opcional si quieres, o solo texto */}
+                    <span>WhatsApp: {phoneWhatsApp}</span>
+                  </a>
+                                    <a 
+                    href={`https://wa.me/${phoneWhatsApp2.replace(/\s/g, '')}`}
+                    className="flex items-center gap-2 text-lg text-green-600 hover:text-green-700 font-medium mt-2 w-fit"
+                  >
+                    {/* Icono pequeño de WhatsApp opcional si quieres, o solo texto */}
+                    <span>WhatsApp: {phoneWhatsApp2}</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Redes Sociales (Nuevo) */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-600 flex items-center gap-2">
+                  ❤️ Redes Sociales
+                </h3>
+                <p className="text-lg text-gray-600 mt-1 mb-2">
+                  Síguenos para novedades y sorteos:
+                </p>
+                
                 <a 
-                  href={`tel:${phoneStore.replace(/\s/g, '')}`}
-                  className="block text-lg text-green-600 hover:text-green-700 font-medium"
+                  href={instagramUrl}
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center gap-2 text-lg text-pink-600 hover:text-pink-700 font-medium transition-colors"
                 >
-                  {phoneStore} (Tienda)
-                </a>
-                <a 
-                  href={`https://wa.me/${phoneWhatsApp.replace(/\s/g, '')}`}
-                  className="block text-lg text-green-600 hover:text-green-700 font-medium mt-1"
-                >
-                  {phoneWhatsApp} (WhatsApp)
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                  </svg>
+                  @{instagramHandle}
                 </a>
               </div>
+
             </div>
           </div>
           
