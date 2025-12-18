@@ -34,7 +34,7 @@ function ProductGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
       <p className="text-center text-stone-600 py-10">
-        Próximamente... Aún no hay productos en esta categoría.
+        Contactanos por correo para hacer tu pedido y elegir la cantidad que deseas, ¡Te esperamos!
       </p>
     );
   }
