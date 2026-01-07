@@ -24,8 +24,8 @@ function CheckoutForm() {
     name: '',
     email: '',
     address: '',
-    city: '',     // Agregado campo ciudad para mejor envío
-    postalCode: '' // Agregado código postal
+    city: '',    
+    postalCode: '' 
   });
 
   // --- Lógica de cálculo de precios ---
@@ -52,7 +52,22 @@ function CheckoutForm() {
     // 1. Confirmar pago con Stripe
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: {}, // No redirigimos automáticamente para poder guardar en Supabase primero
+      confirmParams: {
+        // Añadimos esto por si el banco requiere redirección (3D Secure)
+        return_url: window.location.origin + '/success', 
+        payment_method_data: {
+            billing_details: {
+                name: shippingInfo.name,
+                email: shippingInfo.email,
+                address: {
+                    line1: shippingInfo.address,
+                    city: shippingInfo.city,
+                    postal_code: shippingInfo.postalCode,
+                    country: 'ES', // Puedes hacerlo dinámico si vendes fuera
+                }
+            }
+        }
+      },
       redirect: 'if_required'
     });
 
@@ -62,7 +77,7 @@ function CheckoutForm() {
       return;
     }
 
-    // 2. Si el pago fue exitoso, guardar en Supabase
+    // 2. Si el pago fue exitoso (y no requirió redirección externa), guardar en Supabase
     if (paymentIntent && paymentIntent.status === 'succeeded') {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -77,8 +92,8 @@ function CheckoutForm() {
             user_id: user.id,
             customer_name: shippingInfo.name,
             customer_email: shippingInfo.email,
-            shipping_address: `${shippingInfo.address}, ${shippingInfo.postalCode}, ${shippingInfo.city}`, // Dirección completa
-            total_amount: precioFinal, // ¡IMPORTANTE! Guardamos el precio CON envío
+            shipping_address: `${shippingInfo.address}, ${shippingInfo.postalCode}, ${shippingInfo.city}`,
+            total_amount: precioFinal, 
             stripe_payment_intent_id: paymentIntent.id,
             status: 'paid',
           })
@@ -103,16 +118,20 @@ function CheckoutForm() {
         if (itemsError) throw itemsError;
 
         // Todo correcto
-        setMessage("¡Pago realizado con éxito!");
-        clearCart();
-        router.push('/pedidos'); // O una página de "Gracias por tu compra"
+        // clearCart(); -> Lo quitamos aquí porque lo hace la página /success automáticamente
+        // Pero por seguridad lo dejamos comentado o lo ejecutamos, aunque success lo hará de nuevo.
+        // Lo ideal es dejar que success se encargue para asegurar UX.
+        
+        // REDIRECCIÓN A LA PÁGINA DE ÉXITO
+        router.push('/success'); 
 
       } catch (dbError: any) {
         console.error("Error guardando en Supabase:", dbError);
         setMessage(`Pago exitoso en Stripe, pero error guardando pedido: ${dbError.message}. Contáctanos.`);
       }
     } else {
-      setMessage("El pago no se ha completado. Inténtalo de nuevo.");
+      // Si entra aquí es porque paymentIntent no es succeeded o está pendiente
+      setMessage("El pago no se ha completado inmediatamente. Revisa tu banco.");
     }
 
     setIsLoading(false);
@@ -124,7 +143,7 @@ function CheckoutForm() {
   return (
     <form id="payment-form" onSubmit={handleSubmit} className="space-y-6 w-full">
       
-      {/* --- RESUMEN DE PAGO (NUEVO) --- */}
+      {/* --- RESUMEN DE PAGO --- */}
       <div className="bg-stone-50 p-4 rounded-lg border border-stone-200 text-sm">
         <h4 className="font-semibold text-stone-700 mb-2">Resumen</h4>
         <div className="flex justify-between mb-1">
@@ -191,7 +210,7 @@ const stripePromise = loadStripe(
 
 export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState("");
-  const { cart, totalPrice } = useCart(); // totalPrice aquí es solo productos
+  const { cart, totalPrice } = useCart(); 
   const router = useRouter();
   const supabase = createClientComponentClient();
   const [isUserChecked, setIsUserChecked] = useState(false);
@@ -212,12 +231,11 @@ export default function CheckoutPage() {
       }
 
       // 3. Crear Payment Intent en el servidor
-      // IMPORTANTE: El servidor recalculará el total incluyendo envío
       try {
         const res = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: cart }), // Enviamos items, no solo cart
+          body: JSON.stringify({ items: cart }), 
         });
         
         const data = await res.json();
@@ -237,7 +255,7 @@ export default function CheckoutPage() {
     appearance: { 
         theme: 'stripe' as const,
         variables: {
-            colorPrimary: '#16a34a', // Verde Tailwind
+            colorPrimary: '#16a34a', 
         }
     },
   };
