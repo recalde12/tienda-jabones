@@ -1,20 +1,34 @@
 "use client";
 
-import { useEffect } from "react";
-// import Link from "next/link"; // Puedes usar Link o el router, ambos funcionarán ahora
+import { useEffect, Suspense } from "react";
 import { useCart } from "@/context/CartContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SuccessPage() {
+// Creamos un componente interno para el contenido que usa parámetros de búsqueda
+function SuccessContent() {
   const { clearCart } = useCart();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Obtenemos el ID del pago de la URL (Stripe siempre lo envía)
+  const paymentIntent = searchParams.get('payment_intent');
 
   useEffect(() => {
-    // Vaciamos el carrito SOLO UNA VEZ al montar el componente
+    // 1. PROTECCIÓN DE RUTA
+    // Si no hay 'payment_intent' en la URL, es que no vienen de Stripe.
+    if (!paymentIntent) {
+      router.push('/'); // Los mandamos al inicio (o a /productos)
+      return; // Detenemos la ejecución para NO borrar el carrito
+    }
+
+    // 2. Si hay paymentIntent, es una compra real: Vaciamos el carrito
     clearCart();
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // <--- IMPORTANTE: Array vacío para evitar el bucle infinito
+  }, []); // Array vacío importante para evitar bucles
+
+  // Mientras verificamos (o si redirigimos), podemos no mostrar nada o un spinner
+  if (!paymentIntent) return null;
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4">
@@ -57,7 +71,6 @@ export default function SuccessPage() {
           </div>
         </div>
 
-        {/* Botón con navegación programática (más seguro contra bloqueos de CSS) */}
         <button 
           onClick={() => router.push('/productos')}
           type="button"
@@ -67,5 +80,15 @@ export default function SuccessPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+// COMPONENTE PRINCIPAL QUE EXPORTAMOS
+// En Next.js, cuando usas useSearchParams, es recomendable envolver en Suspense
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Cargando confirmación...</div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }
