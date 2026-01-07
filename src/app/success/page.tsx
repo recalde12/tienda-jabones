@@ -60,7 +60,7 @@ export default function SuccessPage() {
         </div>
 
         <Link 
-          href="/"
+          href="/productos"
           className="block w-full bg-stone-900 text-white font-bold py-3 px-4 rounded-lg hover:bg-stone-700 transition-colors"
         >
           Volver a la tienda
