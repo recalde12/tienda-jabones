@@ -15,7 +15,7 @@ function CheckoutForm() {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
-  const { cart, totalPrice, clearCart } = useCart();
+  const { cart, totalPrice, clearCart } = useCart(); // clearCart ya no es estrictamente necesario aquí, pero no molesta
   const supabase = createClientComponentClient();
 
   const [message, setMessage] = useState<string | null>(null);
@@ -117,13 +117,10 @@ function CheckoutForm() {
 
         if (itemsError) throw itemsError;
 
-        // Todo correcto
-        // clearCart(); -> Lo quitamos aquí porque lo hace la página /success automáticamente
-        // Pero por seguridad lo dejamos comentado o lo ejecutamos, aunque success lo hará de nuevo.
-        // Lo ideal es dejar que success se encargue para asegurar UX.
-        
-        // REDIRECCIÓN A LA PÁGINA DE ÉXITO
-        router.push('/success'); 
+        // --- CORRECCIÓN FINAL ---
+        // Pasamos el ID del pago en la URL para que la página de success sepa que es real
+        // y proceda a borrar el carrito.
+        router.push(`/success?payment_intent=${paymentIntent.id}`); 
 
       } catch (dbError: any) {
         console.error("Error guardando en Supabase:", dbError);
