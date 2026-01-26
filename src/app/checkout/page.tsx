@@ -7,19 +7,21 @@ import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-// --- Constantes de Envío (Deben coincidir con tu lógica de negocio) ---
+// --- Constantes de Envío ---
 const COSTO_ENVIO = 4.50;
 const UMBRAL_ENVIO_GRATIS = 40;
 
-function CheckoutForm() {
+// Definimos los props que recibe el formulario
+function CheckoutForm({ deliveryMethod }: { deliveryMethod: 'shipping' | 'pickup' }) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
-  const { cart, totalPrice, clearCart } = useCart(); // clearCart ya no es estrictamente necesario aquí, pero no molesta
+  const { cart, totalPrice } = useCart(); 
   const supabase = createClientComponentClient();
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
   const [shippingInfo, setShippingInfo] = useState({
     name: '',
     email: '',
@@ -28,8 +30,12 @@ function CheckoutForm() {
     postalCode: '' 
   });
 
-  // --- Lógica de cálculo de precios ---
-  const precioEnvio = totalPrice > UMBRAL_ENVIO_GRATIS ? 0 : COSTO_ENVIO;
+  // --- Lógica de cálculo de precios VISUAL ---
+  // Si es recogida (pickup), el envío es 0. Si no, calculamos según el umbral.
+  const precioEnvio = deliveryMethod === 'pickup' 
+    ? 0 
+    : (totalPrice > UMBRAL_ENVIO_GRATIS ? 0 : COSTO_ENVIO);
+
   const precioFinal = totalPrice + precioEnvio;
 
   const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,30 +47,43 @@ function CheckoutForm() {
 
     if (!stripe || !elements) return;
     
-    // Validación básica
-    if (!shippingInfo.name || !shippingInfo.email || !shippingInfo.address) {
-      setMessage("Por favor, rellena todos los datos de envío obligatorios.");
+    // --- VALIDACIÓN ---
+    if (!shippingInfo.name || !shippingInfo.email) {
+      setMessage("Por favor, introduce nombre y email.");
       return;
     }
 
+    // Solo validamos dirección si es envío a domicilio
+    if (deliveryMethod === 'shipping') {
+        if (!shippingInfo.address || !shippingInfo.city || !shippingInfo.postalCode) {
+            setMessage("Por favor, rellena la dirección completa para el envío.");
+            return;
+        }
+    }
+
     setIsLoading(true);
+
+    // Preparamos el texto de la dirección para Supabase
+    const direccionGuardada = deliveryMethod === 'shipping'
+        ? `${shippingInfo.address}, ${shippingInfo.postalCode}, ${shippingInfo.city}`
+        : `RECOGIDA EN TIENDA - Cliente: ${shippingInfo.name}`;
 
     // 1. Confirmar pago con Stripe
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        // Añadimos esto por si el banco requiere redirección (3D Secure)
         return_url: window.location.origin + '/success', 
         payment_method_data: {
             billing_details: {
                 name: shippingInfo.name,
                 email: shippingInfo.email,
-                address: {
+                // Solo enviamos dirección a Stripe si es envío a domicilio
+                address: deliveryMethod === 'shipping' ? {
                     line1: shippingInfo.address,
                     city: shippingInfo.city,
                     postal_code: shippingInfo.postalCode,
-                    country: 'ES', // Puedes hacerlo dinámico si vendes fuera
-                }
+                    country: 'ES', 
+                } : undefined
             }
         }
       },
@@ -77,12 +96,10 @@ function CheckoutForm() {
       return;
     }
 
-    // 2. Si el pago fue exitoso (y no requirió redirección externa), guardar en Supabase
+    // 2. Si el pago fue exitoso, guardar en Supabase
     if (paymentIntent && paymentIntent.status === 'succeeded') {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        
-        // Nota: Si permites compra como invitado, quita la validación estricta de usuario
         if (!user) throw new Error("Usuario no autenticado.");
 
         // Insertar Pedido
@@ -92,7 +109,7 @@ function CheckoutForm() {
             user_id: user.id,
             customer_name: shippingInfo.name,
             customer_email: shippingInfo.email,
-            shipping_address: `${shippingInfo.address}, ${shippingInfo.postalCode}, ${shippingInfo.city}`,
+            shipping_address: direccionGuardada, // Guardamos la dirección o el aviso de recogida
             total_amount: precioFinal, 
             stripe_payment_intent_id: paymentIntent.id,
             status: 'paid',
@@ -117,17 +134,14 @@ function CheckoutForm() {
 
         if (itemsError) throw itemsError;
 
-        // --- CORRECCIÓN FINAL ---
-        // Pasamos el ID del pago en la URL para que la página de success sepa que es real
-        // y proceda a borrar el carrito.
+        // Redirección con ID para pasar la seguridad de success
         router.push(`/success?payment_intent=${paymentIntent.id}`); 
 
       } catch (dbError: any) {
         console.error("Error guardando en Supabase:", dbError);
-        setMessage(`Pago exitoso en Stripe, pero error guardando pedido: ${dbError.message}. Contáctanos.`);
+        setMessage(`Pago exitoso, pero error guardando pedido: ${dbError.message}. Contáctanos.`);
       }
     } else {
-      // Si entra aquí es porque paymentIntent no es succeeded o está pendiente
       setMessage("El pago no se ha completado inmediatamente. Revisa tu banco.");
     }
 
@@ -147,8 +161,17 @@ function CheckoutForm() {
           <span>Subtotal</span>
           <span>{formatMoney(totalPrice)}</span>
         </div>
+        
+        {/* Mostramos qué método está seleccionado */}
         <div className="flex justify-between mb-2 pb-2 border-b border-stone-200">
-          <span>Envío</span>
+          <span>Método</span>
+          <span className="font-medium text-stone-600">
+             {deliveryMethod === 'pickup' ? 'Recogida en Tienda' : 'Envío a Domicilio'}
+          </span>
+        </div>
+
+        <div className="flex justify-between mb-2 pb-2 border-b border-stone-200">
+          <span>Envío / Gestión</span>
           <span className={precioEnvio === 0 ? "text-green-600 font-bold" : ""}>
             {precioEnvio === 0 ? "Gratis" : formatMoney(precioEnvio)}
           </span>
@@ -159,24 +182,37 @@ function CheckoutForm() {
         </div>
       </div>
 
-      {/* --- DATOS DE ENVÍO --- */}
+      {/* --- DATOS DEL CLIENTE --- */}
       <div>
-        <h3 className="text-lg font-semibold mb-3">Datos de Envío</h3>
+        <h3 className="text-lg font-semibold mb-3">Datos de Contacto</h3>
         <div className="space-y-3">
           <input type="text" name="name" placeholder="Nombre Completo" onChange={handleShippingChange} className="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
           <input type="email" name="email" placeholder="Email" onChange={handleShippingChange} className="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
-          <input type="text" name="address" placeholder="Dirección y Número" onChange={handleShippingChange} className="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
           
-          <div className="flex gap-3">
-            <input type="text" name="postalCode" placeholder="C.P." onChange={handleShippingChange} className="w-1/3 p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
-            <input type="text" name="city" placeholder="Ciudad / Provincia" onChange={handleShippingChange} className="w-2/3 p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
-          </div>
+          {/* CAMPOS DE DIRECCIÓN (SOLO SI ES ENVÍO) */}
+          {deliveryMethod === 'shipping' && (
+            <div className="space-y-3 animate-in fade-in slide-in-from-top-1 duration-300">
+                <input type="text" name="address" placeholder="Dirección y Número" onChange={handleShippingChange} className="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
+                
+                <div className="flex gap-3">
+                    <input type="text" name="postalCode" placeholder="C.P." onChange={handleShippingChange} className="w-1/3 p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
+                    <input type="text" name="city" placeholder="Ciudad / Provincia" onChange={handleShippingChange} className="w-2/3 p-3 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" required />
+                </div>
+            </div>
+          )}
+
+          {/* MENSAJE INFORMATIVO SI ES RECOGIDA */}
+          {deliveryMethod === 'pickup' && (
+            <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-yellow-800">
+                📍 <strong>Recogida en tienda:</strong> Podrás recoger tu pedido en nuestra tienda física una vez recibas el email de confirmación.
+            </div>
+          )}
         </div>
       </div>
 
       {/* --- DATOS DE PAGO STRIPE --- */}
       <div>
-        <h3 className="text-lg font-semibold mb-3">Tarjeta de Crédito</h3>
+        <h3 className="text-lg font-semibold mb-3">Pago Seguro</h3>
         <div className="border p-3 rounded-md bg-white">
           <PaymentElement id="payment-element" />
         </div>
@@ -207,13 +243,16 @@ const stripePromise = loadStripe(
 
 export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState("");
-  const { cart, totalPrice } = useCart(); 
+  const { cart } = useCart(); 
   const router = useRouter();
   const supabase = createClientComponentClient();
   const [isUserChecked, setIsUserChecked] = useState(false);
+  
+  // NUEVO ESTADO: Controla si es envío o recogida
+  const [deliveryMethod, setDeliveryMethod] = useState<'shipping' | 'pickup'>('shipping');
 
   useEffect(() => {
-    async function checkUserAndCart() {
+    async function initCheckout() {
       // 1. Auth check
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -227,12 +266,21 @@ export default function CheckoutPage() {
         return;
       }
 
-      // 3. Crear Payment Intent en el servidor
+      setIsUserChecked(true);
+
+      // 3. Crear (o actualizar) Payment Intent en el servidor
       try {
+        // Ponemos el secret a vacío para mostrar spinner mientras recalcula
+        setClientSecret("");
+
         const res = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: cart }), 
+          // Enviamos el método seleccionado al backend
+          body: JSON.stringify({ 
+              items: cart, 
+              deliveryMethod: deliveryMethod 
+          }), 
         });
         
         const data = await res.json();
@@ -240,12 +288,13 @@ export default function CheckoutPage() {
       } catch (error) {
         console.error("Error iniciando pago:", error);
       }
-      
-      setIsUserChecked(true);
     }
 
-    checkUserAndCart();
-  }, [cart, router, supabase]);
+    initCheckout();
+    
+    // IMPORTANTE: Añadimos deliveryMethod a las dependencias.
+    // Cuando el usuario cambie el botón, esto se ejecuta de nuevo y actualiza el precio en Stripe.
+  }, [cart, router, supabase, deliveryMethod]);
 
   const options = {
     clientSecret,
@@ -260,7 +309,7 @@ export default function CheckoutPage() {
   if (!isUserChecked) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-stone-50">
-            <p className="text-stone-600 animate-pulse">Cargando pasarela de pago...</p>
+            <p className="text-stone-600 animate-pulse">Cargando...</p>
         </div>
     );
   }
@@ -273,14 +322,46 @@ export default function CheckoutPage() {
             <p className="text-sm text-stone-300 mt-1">Finaliza tu compra de forma segura</p>
         </div>
         
-        <div className="p-6 md:p-8">
+        {/* --- SELECTOR DE MÉTODO DE ENVÍO (NUEVO) --- */}
+        <div className="p-6 pb-0">
+            <h3 className="text-xs font-bold text-stone-500 mb-3 uppercase tracking-wider">Método de entrega</h3>
+            <div className="grid grid-cols-2 gap-3">
+                <button
+                    onClick={() => setDeliveryMethod('shipping')}
+                    className={`p-3 rounded-lg border-2 text-sm font-medium transition-all flex flex-col items-center justify-center gap-1
+                        ${deliveryMethod === 'shipping' 
+                            ? 'border-green-600 bg-green-50 text-green-700' 
+                            : 'border-stone-200 hover:border-stone-300 text-stone-600'
+                        }`}
+                >
+                    <span className="text-xl">🚚</span>
+                    <span>Envío a Casa</span>
+                </button>
+                <button
+                    onClick={() => setDeliveryMethod('pickup')}
+                    className={`p-3 rounded-lg border-2 text-sm font-medium transition-all flex flex-col items-center justify-center gap-1
+                        ${deliveryMethod === 'pickup' 
+                            ? 'border-green-600 bg-green-50 text-green-700' 
+                            : 'border-stone-200 hover:border-stone-300 text-stone-600'
+                        }`}
+                >
+                   <span className="text-xl">🏪</span>
+                   <span>Recogida</span>
+                   <span className="text-[10px] bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-bold">GRATIS</span>
+                </button>
+            </div>
+        </div>
+
+        <div className="p-6 md:p-8 pt-4">
             {clientSecret ? (
             <Elements options={options} stripe={stripePromise}>
-                <CheckoutForm />
+                {/* Pasamos el método al formulario hijo para que sepa qué campos mostrar */}
+                <CheckoutForm deliveryMethod={deliveryMethod} />
             </Elements>
             ) : (
-            <div className="flex justify-center py-10">
-                <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex flex-col items-center justify-center py-10">
+                <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-sm text-stone-500">Calculando precio...</p>
             </div>
             )}
         </div>
