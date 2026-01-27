@@ -7,12 +7,16 @@ export function ContactSection() {
   
   // Teléfonos
   const phoneStore = "669 78 85 74";      // Teléfono 1
-  const phoneStore2 = "619 32 64 49";     // <--- PON AQUÍ EL SEGUNDO TELÉFONO
-  const phoneWhatsApp = "669 78 85 74";   // Teléfono para WhatsApp
-  const phoneWhatsApp2 = "619 32 64 49";
-  // Instagram
-  const instagramHandle = "flordemalaura"; // <--- PON AQUÍ TU USUARIO DE INSTAGRAM (sin @)
+  const phoneStore2 = "619 32 64 49";     // Teléfono 2
+  const phoneWhatsApp = "669 78 85 74";   // WhatsApp 1
+  const phoneWhatsApp2 = "619 32 64 49";  // WhatsApp 2
+
+  // Redes Sociales
+  const instagramHandle = "flordemalaura"; 
   const instagramUrl = `https://instagram.com/${instagramHandle}`;
+  
+  // <--- PON AQUÍ EL LINK DE TU FACEBOOK
+  const facebookUrl = "https://www.facebook.com/profile.php?id=61582573412425&locale=es_ES"; 
 
   const mapEmbedCode = `
 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1902.4359717900354!2d-3.575681434833237!3d40.20747049350152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd42177c087963f5%3A0xaa1ff7a205e0ac6b!2sNueva%20Imagen%20Peluqueros!5e1!3m2!1ses!2ses!4v1761570020529!5m2!1ses!2ses" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -87,7 +91,7 @@ export function ContactSection() {
                     {phoneStore}
                   </a>
 
-                  {/* Teléfono 2 (Nuevo) */}
+                  {/* Teléfono 2 */}
                   <a 
                     href={`tel:${phoneStore2.replace(/\s/g, '')}`}
                     className="text-lg text-green-600 hover:text-green-700 font-medium w-fit"
@@ -95,25 +99,25 @@ export function ContactSection() {
                     {phoneStore2}
                   </a>
 
-                  {/* WhatsApp */}
+                  {/* WhatsApp 1 */}
                   <a 
                     href={`https://wa.me/${phoneWhatsApp.replace(/\s/g, '')}`}
                     className="flex items-center gap-2 text-lg text-green-600 hover:text-green-700 font-medium mt-2 w-fit"
                   >
-                    {/* Icono pequeño de WhatsApp opcional si quieres, o solo texto */}
                     <span>WhatsApp: {phoneWhatsApp}</span>
                   </a>
-                                    <a 
+                  
+                  {/* WhatsApp 2 */}
+                  <a 
                     href={`https://wa.me/${phoneWhatsApp2.replace(/\s/g, '')}`}
-                    className="flex items-center gap-2 text-lg text-green-600 hover:text-green-700 font-medium mt-2 w-fit"
+                    className="flex items-center gap-2 text-lg text-green-600 hover:text-green-700 font-medium w-fit"
                   >
-                    {/* Icono pequeño de WhatsApp opcional si quieres, o solo texto */}
                     <span>WhatsApp: {phoneWhatsApp2}</span>
                   </a>
                 </div>
               </div>
 
-              {/* Redes Sociales (Nuevo) */}
+              {/* Redes Sociales */}
               <div>
                 <h3 className="text-xl font-semibold text-gray-600 flex items-center gap-2">
                   ❤️ Redes Sociales
@@ -122,29 +126,58 @@ export function ContactSection() {
                   Síguenos para novedades y sorteos:
                 </p>
                 
-                <a 
-                  href={instagramUrl}
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center gap-2 text-lg text-pink-600 hover:text-pink-700 font-medium transition-colors"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="24" 
-                    height="24" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
+                {/* Contenedor flexible para poner uno debajo del otro */}
+                <div className="flex flex-col items-start gap-3">
+                  
+                  {/* Instagram */}
+                  <a 
+                    href={instagramUrl}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-2 text-lg text-pink-600 hover:text-pink-700 font-medium transition-colors"
                   >
-                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-                  </svg>
-                  @{instagramHandle}
-                </a>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                    </svg>
+                    @{instagramHandle}
+                  </a>
+
+                  {/* Facebook (NUEVO) */}
+                  <a 
+                    href={facebookUrl}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-2 text-lg text-blue-700 hover:text-blue-800 font-medium transition-colors"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                    </svg>
+                    La Flor de Malaura
+                  </a>
+
+                </div>
               </div>
 
             </div>
