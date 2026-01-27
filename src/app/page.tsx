@@ -23,9 +23,8 @@ export default function HomePage() {
 
         {/* 5. Párrafo con ancho limitado (más fácil de leer) y color de texto más suave */}
         <p className="text-lg md:text-xl text-stone-300 max-w-3xl leading-relaxed">
-          De las manos de Laura y María nace Malaura, un refugio de aromas y
-          texturas que cuidan como lo haría una madre. Cada jabón florece con el
-          amor de lo hecho en casa, con el alma y la frescura de lo natural.
+            En Malaura, creamos jabones artesanales naturales hechos a mano por Laura y María. 
+            Un refugio de aromas y texturas que cuidan tu piel con la frescura de lo natural y el amor de lo hecho en casa.
         </p>
 
       </section>
