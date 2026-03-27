@@ -35,12 +35,12 @@ export function Header({ session }: { session: Session | null }) {
 
   // Componente del Icono del Carrito (para reutilizarlo y no repetir código)
   const CartIcon = () => (
-    <Link href="/carrito" className="relative flex items-center text-stone-300 hover:text-white transition-colors">
+    <Link href="/carrito" className="relative flex items-center text-stone-400 hover:text-white transition-colors p-1">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
       </svg>
       {totalItems > 0 && (
-        <span className="absolute -top-2 -right-3 bg-stone-300 text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+        <span className="absolute -top-1 -right-2 bg-amber-400 text-stone-900 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow">
           {totalItems}
         </span>
       )}
@@ -48,12 +48,17 @@ export function Header({ session }: { session: Session | null }) {
   );
 
   return (
-    <header className="bg-black shadow-md w-full sticky top-0 z-50">
-      <nav className="container mx-auto px-4 py-4 flex flex-wrap justify-between items-center">
-        
+    <header className="bg-stone-900 border-b border-stone-700/50 w-full sticky top-0 z-50 shadow-lg">
+      <nav className="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+
         {/* 1. LOGO (Izquierda) */}
-        <Link href="/" className="text-xl md:text-2xl font-bold text-stone-300 hover:text-white transition-colors truncate">
-          La Flor de Malaura
+        <Link href="/" className="flex flex-col leading-tight group">
+          <span className="text-xs font-light tracking-[0.3em] text-stone-400 uppercase group-hover:text-stone-300 transition-colors">
+            La Flor de
+          </span>
+          <span className="text-xl md:text-2xl font-bold font-serif text-stone-100 group-hover:text-white transition-colors italic">
+            Malaura
+          </span>
         </Link>
 
         {/* 2. CONTROLES MÓVIL (Derecha - Solo visible en móvil) */}
@@ -84,14 +89,14 @@ export function Header({ session }: { session: Session | null }) {
             isMobileMenuOpen ? 'block' : 'hidden'
           } w-full md:block md:w-auto mt-4 md:mt-0`}
         >
-          <ul className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 text-lg border-t md:border-none border-stone-800 pt-4 md:pt-0">
+          <ul className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 text-sm border-t md:border-none border-stone-700 pt-4 md:pt-0">
             <li>
-              <Link href="/" className="block text-stone-300 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link href="/" className="block px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500" onClick={() => setIsMobileMenuOpen(false)}>
                 Inicio
               </Link>
             </li>
             <li>
-              <Link href="/productos" className="block text-stone-300 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link href="/productos" className="block px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500" onClick={() => setIsMobileMenuOpen(false)}>
                 Productos
               </Link>
             </li>
@@ -99,25 +104,25 @@ export function Header({ session }: { session: Session | null }) {
             {session ? (
               <>
                <li>
-                  <Link href="/perfil" className="text-stone-300 hover:text-white transition-colors">
+                  <Link href="/perfil" className="px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500">
                     Mi Perfil
                   </Link>
                 </li>
                 <li>
-                  <Link href="/pedidos" className="block text-stone-300 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href="/pedidos" className="block px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500" onClick={() => setIsMobileMenuOpen(false)}>
                     Mis Pedidos
                   </Link>
                 </li>
                 <li>
-                  <button onClick={handleLogout} className="text-left text-stone-300 hover:text-white transition-colors w-full md:w-auto">
-                    Logout
+                  <button onClick={handleLogout} className="text-left px-1 py-1 text-stone-400 hover:text-white transition-colors font-medium tracking-wide w-full md:w-auto">
+                    Salir
                   </button>
                 </li>
               </>
             ) : (
               <li>
-                <Link href="/login" className="block text-stone-300 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
-                  Login
+                <Link href="/login" className="block px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500" onClick={() => setIsMobileMenuOpen(false)}>
+                  Entrar
                 </Link>
               </li>
             )}

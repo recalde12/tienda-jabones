@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Usamos la fuente por defecto
+import { Lato, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -12,11 +12,12 @@ import { cookies } from "next/headers";
 import { Header } from "@/components/Header";
 import { CartProvider } from "@/context/CartContext";
 
-const inter = Inter({ subsets: ["latin"] }); // Fuente por defecto
+const lato = Lato({ subsets: ["latin"], weight: ["300", "400", "700"], variable: "--font-lato" });
+const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "600", "700"], style: ["normal", "italic"], variable: "--font-playfair" });
 
-export const metadata = {
-  title: "Jabones Malaura",
-  description: "Jabones artesanales hechos con ingredientes naturales.",
+export const metadata: Metadata = {
+  title: "La Flor de Malaura | Jabones Artesanales Naturales",
+  description: "Jabones artesanales hechos a mano con ingredientes 100% naturales por Laura y María. Cruelty-free, sin parabenos ni sulfatos.",
 };
 
 export default async function RootLayout({
@@ -30,7 +31,7 @@ export default async function RootLayout({
 
   return (
     <html lang="es">
-      <body className={inter.className}>
+      <body className={`${lato.variable} ${playfair.variable} ${lato.className}`}>
         <CartProvider>
           <Header session={session} />
           <main>{children}</main>
