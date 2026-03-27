@@ -4,16 +4,16 @@ import { createClient } from '@supabase/supabase-js';
 
 // Inicializamos Stripe con la clave secreta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20', // Mantenemos tu versión
+  apiVersion: '2024-06-20',
 });
 
-// Inicializamos Supabase
+// Inicializamos Supabase con service_role para validar descuentos sin RLS
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// --- CONSTANTES DE ENVÍO (Deben ser iguales al Frontend) ---
+// --- CONSTANTES DE ENVÍO ---
 const COSTO_ENVIO = 4.50;
 const UMBRAL_ENVIO_GRATIS = 40;
 
@@ -21,53 +21,75 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    // Aceptamos 'items' o 'cart'
-    const cart = body.items || body.cart; 
-    
-    // --- NUEVO: Recibimos el método de entrega (por defecto 'shipping') ---
-    const deliveryMethod = body.deliveryMethod || 'shipping'; 
+    const cart = body.items || body.cart;
+    const deliveryMethod = body.deliveryMethod || 'shipping';
+    const discountCode: string | null = body.discountCode || null;
 
-    // --- 1. Calcular el Subtotal de los productos ---
+    // --- 1. Calcular Subtotal ---
     let subtotal = 0;
-    
-    // (Mantenemos tu nota de seguridad sobre validar precios en el futuro)
     for (const item of cart) {
         subtotal += item.price * item.quantity;
     }
 
-    // --- 2. Calcular Gastos de Envío (Lógica Actualizada) ---
-    let shippingCost = 0;
+    // --- 2. Calcular Descuento ---
+    let discountAmount = 0;
+    let discountInfo: string = '';
 
+    if (discountCode) {
+      const { data: dc } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('active', true)
+        .ilike('code', discountCode.trim())
+        .single();
+
+      if (dc) {
+        const now = new Date();
+        const notExpired = !dc.expires_at || new Date(dc.expires_at) > now;
+        const hasUses = dc.max_uses === null || dc.used_count < dc.max_uses;
+        const meetsMinimum = subtotal >= dc.min_amount;
+
+        if (notExpired && hasUses && meetsMinimum) {
+          if (dc.type === 'percentage') {
+            discountAmount = (subtotal * dc.value) / 100;
+          } else {
+            discountAmount = Math.min(dc.value, subtotal);
+          }
+          discountAmount = Math.round(discountAmount * 100) / 100;
+          discountInfo = dc.code;
+        }
+      }
+    }
+
+    // --- 3. Calcular Envío ---
+    let shippingCost = 0;
     if (deliveryMethod === 'pickup') {
-        // Si es recogida en tienda, el coste es SIEMPRE 0
         shippingCost = 0;
     } else {
-        // Si es envío a domicilio, aplicamos la lógica del umbral
         shippingCost = subtotal > UMBRAL_ENVIO_GRATIS ? 0 : COSTO_ENVIO;
     }
 
-    // --- 3. Calcular Total Final ---
-    const totalAmount = subtotal + shippingCost;
+    // --- 4. Total Final (subtotal - descuento + envío, mínimo 0.50€ para Stripe) ---
+    const totalAfterDiscount = Math.max(subtotal - discountAmount, 0);
+    const totalAmount = totalAfterDiscount + shippingCost;
+    const amountInCents = Math.max(Math.round(totalAmount * 100), 50); // Stripe mínimo 50 céntimos
 
-    // Convertir a céntimos para Stripe
-    const amountInCents = Math.round(totalAmount * 100);
-
-    // 4. Crear el Payment Intent en Stripe con el TOTAL CORRECTO
+    // --- 5. Crear Payment Intent ---
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: 'eur',
-      automatic_payment_methods: {
-        enabled: true,
-      },
-      // --- NUEVO: Guardamos en Stripe si es para recoger o enviar ---
+      automatic_payment_methods: { enabled: true },
       metadata: {
-        delivery_method: deliveryMethod === 'pickup' ? 'Recogida en Tienda' : 'Envío a Domicilio'
+        delivery_method: deliveryMethod === 'pickup' ? 'Recogida en Tienda' : 'Envío a Domicilio',
+        discount_code: discountInfo || 'ninguno',
+        discount_amount: discountAmount.toString(),
       }
     });
 
-    // 5. Devolver el 'client_secret' al frontend
-    return NextResponse.json({ 
-      clientSecret: paymentIntent.client_secret 
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret,
+      discountAmount,
+      totalAmount,
     });
 
   } catch (error: any) {

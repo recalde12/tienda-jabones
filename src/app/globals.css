@@ -2,26 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
-  Envolvemos todo tu CSS personalizado aquí
-  y eliminamos el bloque @theme.
-*/
 @layer base {
   :root {
-    --background: #d4bca9;
-    --foreground: #171717;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: #0a0a0a;
-      --foreground: #d4bca9;
-    }
+    --background: #e8d9cc;
+    --foreground: #2c2420;
   }
 
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif, Verdana;
+    font-family: var(--font-lato), 'Lato', Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Aplica Playfair Display a todos los elementos con font-serif */
+  .font-serif {
+    font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  }
+
+  h1, h2, h3 {
+    letter-spacing: -0.01em;
   }
 }
