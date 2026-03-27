@@ -5,10 +5,10 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-// --- Reseñas de respaldo (Fallback por si falla la API) ---
+// --- Reseñas de respaldo (Fallback por si falla la API o hay menos de 5) ---
 const fallbackReviews = [
   {
-    id: 1,
+    id: "fallback-1",
     name: "María José R.",
     avatarUrl: "",
     rating: 5,
@@ -16,7 +16,7 @@ const fallbackReviews = [
     text: "¡Los mejores jabones artesanales que he probado! El de lavanda huele de maravilla y dura muchísimo. Laura y María son encantadoras. 100% recomendado.",
   },
   {
-    id: 2,
+    id: "fallback-2",
     name: "Carlos M.",
     avatarUrl: "",
     rating: 5,
@@ -24,12 +24,28 @@ const fallbackReviews = [
     text: "Compré una cesta como regalo de cumpleaños y fue un éxito total. La presentación es preciosa y los jabones tienen una calidad increíble. Volveré a comprar seguro.",
   },
   {
-    id: 3,
+    id: "fallback-3",
     name: "Ana Belén T.",
     avatarUrl: "",
     rating: 5,
     date: "Hace 3 semanas",
     text: "Tengo la piel muy sensible y estos jabones naturales son lo único que me sienta bien. El de avena y miel es una maravilla. Gracias por cuidar tanto los ingredientes.",
+  },
+  {
+    id: "fallback-4",
+    name: "Patricia L.",
+    avatarUrl: "",
+    rating: 5,
+    date: "Hace 2 meses",
+    text: "Me enamoré del jabón de rosa mosqueta. Tiene un aroma precioso y la piel me queda suavísima. El envío fue rápido y muy bien empaquetado. ¡Excelente!",
+  },
+  {
+    id: "fallback-5",
+    name: "Roberto S.",
+    avatarUrl: "",
+    rating: 5,
+    date: "Hace 1 semana",
+    text: "Fui a la tienda física y me atendieron genial. Probé varios jabones y al final me llevé 6. El de café exfolia muy bien. Un negocio con mucho amor y dedicación.",
   }
 ];
 
@@ -113,7 +129,7 @@ function ReviewCard({ review }: { review: any }) {
 }
 
 export function ReviewsSection() {
-  const googleReviewsUrl = "https://www.google.com/maps/place/Nueva+Imagen+Peluqueros/@40.2074705,-3.575681,17z/"; // <--- Cambia esto por tu enlace real de Google
+  const googleReviewsUrl = "https://search.google.com/local/reviews?placeid=ChIJsdhiNAAXQg0Rn11LyBDmPE4"; 
   
   const [reviews, setReviews] = useState<any[]>(fallbackReviews);
   const [globalRating, setGlobalRating] = useState("5,0");
@@ -129,18 +145,25 @@ export function ReviewsSection() {
           if (data.reviews) {
             // Mapeamos los datos de Google a nuestro formato
             const formattedReviews = data.reviews.map((r: any, index: number) => ({
-              id: index,
+              id: `google-${index}`,
               name: r.author_name,
               avatarUrl: r.profile_photo_url,
               rating: r.rating,
-              date: r.relative_time_description, // Ej: "Hace 2 meses"
+              date: r.relative_time_description, 
               text: r.text,
             }));
             
             // Filtramos para que solo salgan reseñas de 4 o 5 estrellas con texto
             const bestReviews = formattedReviews.filter((r: any) => r.rating >= 4 && r.text.length > 0);
             
-            setReviews(bestReviews.length > 0 ? bestReviews : fallbackReviews);
+            // LA MAGIA: Rellenamos si faltan para llegar a 5
+            let finalReviews = [...bestReviews];
+            if (finalReviews.length < 5) {
+              const huecosFaltantes = 5 - finalReviews.length;
+              finalReviews = [...finalReviews, ...fallbackReviews.slice(0, huecosFaltantes)];
+            }
+            
+            setReviews(finalReviews);
             setGlobalRating(data.rating ? data.rating.toString().replace('.', ',') : "5,0");
             setTotalReviews(data.user_ratings_total);
           }
@@ -161,7 +184,13 @@ export function ReviewsSection() {
         {/* Encabezado */}
         <div className="text-center mb-14">
           <div className="flex items-center justify-center gap-3 mb-4">
-            {/* ... SVG de Google ... */}
+            {/* SVG de Google recuperado */}
+            <svg className="w-8 h-8" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.1 0 5.7 1.1 7.8 2.9l5.8-5.8C33.8 3.5 29.2 1.5 24 1.5 14.8 1.5 7 7.4 3.9 15.6l6.8 5.3C12.3 14.2 17.7 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.8-2.1 5.2-4.5 6.8l7 5.4c4.1-3.8 6.2-9.3 6.2-16.2z"/>
+              <path fill="#FBBC05" d="M10.7 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-6.8-5.3A23.5 23.5 0 0 0 .5 24c0 3.8.9 7.4 2.5 10.5l7.7-5.9z"/>
+              <path fill="#34A853" d="M24 46.5c5.2 0 9.6-1.7 12.8-4.7l-7-5.4c-1.8 1.2-4.1 1.9-5.8 1.9-6.3 0-11.7-4.7-13.3-11l-7.7 5.9C6 41 14.4 46.5 24 46.5z"/>
+            </svg>
             <h2 className="text-3xl md:text-4xl font-bold text-stone-800 font-serif">
               Lo que dicen nuestras clientas
             </h2>
@@ -185,14 +214,14 @@ export function ReviewsSection() {
           <hr className="w-20 border-t-2 border-stone-400 mx-auto mt-6" />
         </div>
 
-        {/* Grid de reseñas */}
+        {/* Grid de reseñas: Cambiado a slice(0, 5) para mostrar las 5 */}
         {loading ? (
           <div className="flex justify-center py-10">
             <div className="w-8 h-8 border-4 border-stone-300 border-t-stone-800 rounded-full animate-spin"></div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reviews.slice(0, 3).map((review) => (
+            {reviews.slice(0, 5).map((review) => (
               <ReviewCard key={review.id} review={review} />
             ))}
           </div>
@@ -206,6 +235,12 @@ export function ReviewsSection() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-white text-stone-700 font-semibold px-8 py-3 rounded-full border-2 border-stone-300 shadow-sm hover:bg-stone-50 hover:border-stone-400 transition-all duration-200"
           >
+             <svg className="w-5 h-5" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.1 0 5.7 1.1 7.8 2.9l5.8-5.8C33.8 3.5 29.2 1.5 24 1.5 14.8 1.5 7 7.4 3.9 15.6l6.8 5.3C12.3 14.2 17.7 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.8-2.1 5.2-4.5 6.8l7 5.4c4.1-3.8 6.2-9.3 6.2-16.2z"/>
+              <path fill="#FBBC05" d="M10.7 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-6.8-5.3A23.5 23.5 0 0 0 .5 24c0 3.8.9 7.4 2.5 10.5l7.7-5.9z"/>
+              <path fill="#34A853" d="M24 46.5c5.2 0 9.6-1.7 12.8-4.7l-7-5.4c-1.8 1.2-4.1 1.9-5.8 1.9-6.3 0-11.7-4.7-13.3-11l-7.7 5.9C6 41 14.4 46.5 24 46.5z"/>
+            </svg>
              Ver todas las reseñas en Google
           </a>
         </div>

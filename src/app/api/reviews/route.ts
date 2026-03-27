@@ -1,5 +1,6 @@
-// src/app/api/reviews/route.ts
 import { NextResponse } from 'next/server';
+
+export const revalidate = 3600; 
 
 export async function GET() {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
@@ -10,15 +11,18 @@ export async function GET() {
   }
 
   try {
-    // Llamada a la API de Google Places (pedimos nombre, puntuación global y reseñas, en español)
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,reviews&key=${apiKey}&language=es`;
+    // AQUÍ ESTÁ EL CAMBIO: Hemos añadido &reviews_sort=newest al final de la URL
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,reviews&key=${apiKey}&language=es&reviews_sort=newest`;
     
     const response = await fetch(url);
     const data = await response.json();
 
     if (data.status === 'OK') {
+      // Chivato para la terminal de tu ordenador:
+      console.log(`✅ Google ha devuelto ${data.result.reviews?.length || 0} reseñas.`);
       return NextResponse.json(data.result);
     } else {
+      console.error("Error de Google:", data.status);
       return NextResponse.json({ error: data.status }, { status: 500 });
     }
   } catch (error) {
