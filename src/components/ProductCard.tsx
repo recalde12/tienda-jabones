@@ -49,24 +49,39 @@ export function ProductCard({ product }: { product: Product }) {
     addToCart(product, selectedColor, selectedFinish);
   };
 
+  const outOfStock = product.stock === 0;
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 flex flex-col">
-      <div className="relative w-full h-64">
+    <div className="group flex flex-col bg-white rounded-2xl border border-stone-200/70 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      <div className="relative w-full aspect-square overflow-hidden bg-stone-100">
         <Image
           src={product.image_url}
           alt={`Imagen de ${product.name}`}
           fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           style={{ objectFit: 'cover' }}
+          className="transition-transform duration-500 ease-out group-hover:scale-105"
         />
+        {outOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+            <span className="px-4 py-1.5 rounded-full bg-stone-800 text-white text-sm font-semibold tracking-wide">
+              Agotado
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex-grow">
-          <h2 className="text-xl font-semibold text-stone-900 truncate">{product.name}</h2>
-          <p className="text-lg font-bold text-green-600 mt-2">
-            {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(product.price)}
-          </p>
-          <p className="text-sm text-stone-600 mt-3">{product.description}</p>
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold text-stone-900 font-serif leading-snug line-clamp-2">
+              {product.name}
+            </h2>
+            <p className="shrink-0 text-lg font-bold text-stone-800 whitespace-nowrap">
+              {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(product.price)}
+            </p>
+          </div>
+          <p className="text-sm text-stone-500 mt-2 leading-relaxed line-clamp-2">{product.description}</p>
 
           {/* --- SELECTOR DE COLORES --- */}
           {product.colors && product.colors.length > 0 && (
@@ -116,11 +131,23 @@ export function ProductCard({ product }: { product: Product }) {
 
         </div>
         
-        <button 
+        <button
           onClick={handleAddToCart}
-          className="mt-6 w-full bg-stone-700 text-white py-2 px-4 rounded-lg font-semibold hover:bg-stone-800 transition-colors"
+          disabled={outOfStock}
+          className="mt-6 w-full inline-flex items-center justify-center gap-2 bg-stone-800 text-white py-2.5 px-4 rounded-full font-semibold shadow-sm transition-all hover:bg-stone-900 hover:shadow-md active:scale-[0.98] disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed disabled:shadow-none"
         >
-          Añadir al carrito
+          {outOfStock ? (
+            'Sin stock'
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="8" cy="21" r="1" />
+                <circle cx="19" cy="21" r="1" />
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+              </svg>
+              Añadir al carrito
+            </>
+          )}
         </button>
       </div>
     </div>

@@ -33,9 +33,13 @@ const categories = [
 function ProductGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
-      <p className="text-center text-stone-600 py-10">
-        Contactanos por correo para hacer tu pedido y elegir la cantidad que deseas, ¡Te esperamos!
-      </p>
+      <div className="max-w-md mx-auto text-center py-16 px-6">
+        <span className="text-5xl block mb-4">🧺</span>
+        <p className="text-stone-600 leading-relaxed">
+          Contáctanos por correo para hacer tu pedido y elegir la cantidad que deseas.
+          <span className="block mt-1 font-semibold text-stone-800">¡Te esperamos!</span>
+        </p>
+      </div>
     );
   }
 
@@ -58,13 +62,6 @@ export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: P
   const handleTabClick = (id: string) => {
     setActiveTab(id);
     setIsDropdownOpen(false); // Cerrar el menú al seleccionar
-  };
-
-  const getTabClass = (tabId: string) => {
-    const isActive = activeTab === tabId;
-    return isActive
-      ? 'bg-stone-700 text-white border-stone-700' 
-      : 'bg-white text-stone-700 hover:bg-stone-100 border-stone-200';
   };
 
   return (
@@ -110,17 +107,23 @@ export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: P
       </div>
 
 
-      {/* --- VISTA DE ESCRITORIO: PESTAÑAS (Oculto en móvil 'hidden md:flex') --- */}
-      <div className="hidden md:flex w-full justify-center gap-4 mb-12 pb-4">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveTab(cat.id)}
-            className={`px-6 py-3 font-semibold rounded-lg shadow-md transition-colors border ${getTabClass(cat.id)}`}
-          >
-            {cat.label}
-          </button>
-        ))}
+      {/* --- VISTA DE ESCRITORIO: CONTROL SEGMENTADO (Oculto en móvil 'hidden md:flex') --- */}
+      <div className="hidden md:flex w-full justify-center mb-12">
+        <div className="inline-flex items-center gap-1 bg-stone-100 rounded-full p-1.5 shadow-inner">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveTab(cat.id)}
+              className={`px-6 py-2.5 text-sm font-semibold rounded-full transition-all duration-200 ${
+                activeTab === cat.id
+                  ? 'bg-stone-800 text-white shadow'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
       </div>
 
 

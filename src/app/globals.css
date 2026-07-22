@@ -25,3 +25,40 @@
     letter-spacing: -0.01em;
   }
 }
+
+/* --- Tema del slider (Swiper) acorde a la marca --- */
+/* Por defecto las flechas y puntos son azules; los pasamos a blanco con acento ámbar */
+.swiper {
+  --swiper-theme-color: #ffffff;
+  --swiper-navigation-color: #ffffff;
+  --swiper-navigation-size: 30px;
+  --swiper-pagination-color: #ffffff;
+  --swiper-pagination-bullet-inactive-color: #ffffff;
+  --swiper-pagination-bullet-inactive-opacity: 0.5;
+  --swiper-pagination-bullet-size: 9px;
+}
+
+/* Flechas: fondo semitransparente circular para que se lean sobre cualquier foto */
+.swiper-button-next,
+.swiper-button-prev {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: rgba(28, 25, 23, 0.35);
+  backdrop-filter: blur(2px);
+  transition: background 0.2s ease;
+}
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(28, 25, 23, 0.6);
+}
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Punto activo con acento ámbar de la marca */
+.swiper-pagination-bullet-active {
+  background: #fbbf24;
+}

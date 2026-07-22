@@ -103,7 +103,7 @@ export function HeroSlider() {
                 {index === 0 && (
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 mt-8">
                     <Link href="/productos" passHref>
-                      <button className="px-5 py-2 text-sm md:px-8 md:py-3 md:text-xl bg-stone-700 text-white font-semibold rounded-lg shadow-xl hover:bg-stone-800 transition-colors transform hover:scale-105 border border-white/20">
+                      <button className="px-7 py-2.5 text-sm md:px-10 md:py-3.5 md:text-lg bg-white/95 text-stone-900 font-bold tracking-wide rounded-full shadow-xl hover:bg-white transition-all hover:-translate-y-0.5">
                         COMPRAR
                       </button>
                     </Link>
@@ -112,9 +112,9 @@ export function HeroSlider() {
 
                 {/* 2. Botón ABAJO IZQUIERDA (Resto de slides) */}
                 {index !== 0 && (
-                  <div className="absolute bottom-6 left-4 md:bottom-12 md:left-12 z-30">
+                  <div className="absolute bottom-8 left-4 md:bottom-14 md:left-14 z-30">
                     <Link href="/productos" passHref>
-                      <button className="px-5 py-2 text-sm md:px-8 md:py-3 md:text-xl bg-stone-700 text-white font-semibold rounded-lg shadow-xl hover:bg-stone-800 transition-colors transform hover:scale-105">
+                      <button className="px-7 py-2.5 text-sm md:px-10 md:py-3.5 md:text-lg bg-white/95 text-stone-900 font-bold tracking-wide rounded-full shadow-xl hover:bg-white transition-all hover:-translate-y-0.5">
                         COMPRAR
                       </button>
                     </Link>

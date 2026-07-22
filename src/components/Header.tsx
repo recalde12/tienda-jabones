@@ -5,17 +5,39 @@
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 
 export function Header({ session }: { session: Session | null }) {
   const { cart } = useCart();
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClientComponentClient();
-  
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+
+  // Enlace de navegación con estado "activo" (resalta la página actual)
+  const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
+    const isActive = pathname === href;
+    return (
+      <Link
+        href={href}
+        onClick={() => setIsMobileMenuOpen(false)}
+        className={`relative block px-1 py-1 font-medium tracking-wide transition-colors ${
+          isActive ? 'text-white' : 'text-stone-300 hover:text-white'
+        }`}
+      >
+        {children}
+        <span
+          className={`absolute left-1 right-1 -bottom-0.5 h-0.5 rounded-full bg-amber-400 transition-opacity duration-200 ${
+            isActive ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      </Link>
+    );
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -89,30 +111,14 @@ export function Header({ session }: { session: Session | null }) {
             isMobileMenuOpen ? 'block' : 'hidden'
           } w-full md:block md:w-auto mt-4 md:mt-0`}
         >
-          <ul className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 text-sm border-t md:border-none border-stone-700 pt-4 md:pt-0">
-            <li>
-              <Link href="/" className="block px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500" onClick={() => setIsMobileMenuOpen(false)}>
-                Inicio
-              </Link>
-            </li>
-            <li>
-              <Link href="/productos" className="block px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500" onClick={() => setIsMobileMenuOpen(false)}>
-                Productos
-              </Link>
-            </li>
+          <ul className="flex flex-col md:flex-row md:items-center gap-2 md:gap-7 text-sm border-t md:border-none border-stone-700 pt-4 md:pt-0">
+            <li><NavLink href="/">Inicio</NavLink></li>
+            <li><NavLink href="/productos">Productos</NavLink></li>
 
             {session ? (
               <>
-               <li>
-                  <Link href="/perfil" className="px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500">
-                    Mi Perfil
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/pedidos" className="block px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500" onClick={() => setIsMobileMenuOpen(false)}>
-                    Mis Pedidos
-                  </Link>
-                </li>
+                <li><NavLink href="/perfil">Mi Perfil</NavLink></li>
+                <li><NavLink href="/pedidos">Mis Pedidos</NavLink></li>
                 <li>
                   <button onClick={handleLogout} className="text-left px-1 py-1 text-stone-400 hover:text-white transition-colors font-medium tracking-wide w-full md:w-auto">
                     Salir
@@ -120,11 +126,7 @@ export function Header({ session }: { session: Session | null }) {
                 </li>
               </>
             ) : (
-              <li>
-                <Link href="/login" className="block px-1 py-1 text-stone-300 hover:text-white transition-colors font-medium tracking-wide hover:underline underline-offset-4 decoration-stone-500" onClick={() => setIsMobileMenuOpen(false)}>
-                  Entrar
-                </Link>
-              </li>
+              <li><NavLink href="/login">Entrar</NavLink></li>
             )}
 
             {/* Carrito de ESCRITORIO (Oculto en móvil para no duplicarlo, visible en MD) */}
