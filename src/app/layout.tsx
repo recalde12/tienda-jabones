@@ -10,6 +10,7 @@ import "swiper/css/pagination";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/context/CartContext";
 import { siteConfig, SITE_URL } from "@/lib/site";
 import { LocalBusinessJsonLd } from "@/components/JsonLd";
@@ -97,6 +98,7 @@ export default async function RootLayout({
         <CartProvider>
           <Header session={session} />
           <main>{children}</main>
+          <Footer />
         </CartProvider>
       </body>
     </html>
