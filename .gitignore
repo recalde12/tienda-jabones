@@ -24,6 +24,11 @@
 .DS_Store
 *.pem
 
+# database backups / dumps (¡datos sensibles! nunca subir)
+*.backup
+*.dump
+*.sql
+
 # debug
 npm-debug.log*
 yarn-debug.log*

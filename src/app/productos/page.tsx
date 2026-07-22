@@ -1,8 +1,23 @@
 // src/app/productos/page.tsx
 
+import type { Metadata } from 'next';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { ProductTabs } from '@/components/ProductTabs'; // <-- Importamos el nuevo componente
+import { ProductListJsonLd } from '@/components/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Catálogo de Jabones Artesanales',
+  description:
+    'Descubre nuestro catálogo de jabones artesanales naturales: jabones al corte, en pastilla, cestas regalo y productos especiales. Hechos a mano, cruelty-free y sin parabenos.',
+  alternates: { canonical: '/productos' },
+  openGraph: {
+    title: 'Catálogo de Jabones Artesanales | La Flor de Malaura',
+    description:
+      'Jabones al corte, en pastilla, cestas regalo y productos especiales. Hechos a mano con ingredientes 100% naturales.',
+    url: '/productos',
+  },
+};
 
 // La interfaz de Producto debe incluir la nueva categoría
 interface Product {
@@ -39,10 +54,17 @@ export default async function ProductosPage() {
 
   return (
     <div className="bg-stone-50 min-h-screen">
+      <ProductListJsonLd products={allProducts} />
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-center text-stone-800 mb-12 font-serif">
-          Nuestro Catálogo
-        </h1>
+        <div className="text-center mb-10">
+          <span className="text-xs font-semibold tracking-[0.2em] text-stone-500 uppercase">
+            Jabones artesanales naturales
+          </span>
+          <h1 className="text-4xl md:text-5xl font-bold text-stone-800 mt-3 font-serif">
+            Nuestro Catálogo
+          </h1>
+          <div className="w-16 h-0.5 bg-stone-300 mx-auto mt-6" />
+        </div>
         
         {/* 3. Renderizamos el componente de Pestañas y le pasamos los productos filtrados */}
         <ProductTabs 
