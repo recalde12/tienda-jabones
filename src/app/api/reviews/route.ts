@@ -22,8 +22,12 @@ export async function GET() {
       console.log(`✅ Google ha devuelto ${data.result.reviews?.length || 0} reseñas.`);
       return NextResponse.json(data.result);
     } else {
-      console.error("Error de Google:", data.status);
-      return NextResponse.json({ error: data.status }, { status: 500 });
+      // error_message explica la causa exacta (API no habilitada, facturación, restricción de clave...)
+      console.error("Error de Google:", data.status, "-", data.error_message);
+      return NextResponse.json(
+        { error: data.status, error_message: data.error_message ?? null },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error("Error fetching Google Reviews:", error);
