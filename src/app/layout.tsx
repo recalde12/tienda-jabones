@@ -80,6 +80,9 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
   },
   category: "shopping",
+  verification: {
+    google: "AHBz0hY6B_AFDTCkBMuye5rZDniJ5Budo1Rc3qRLjXw",
+  },
 };
 
 export default async function RootLayout({
