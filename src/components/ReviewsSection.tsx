@@ -5,49 +5,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-// --- Reseñas de respaldo (Fallback por si falla la API o hay menos de 5) ---
-const fallbackReviews = [
-  {
-    id: "fallback-1",
-    name: "María José R.",
-    avatarUrl: "",
-    rating: 5,
-    date: "Hace 2 semanas",
-    text: "¡Los mejores jabones artesanales que he probado! El de lavanda huele de maravilla y dura muchísimo. Laura y María son encantadoras. 100% recomendado.",
-  },
-  {
-    id: "fallback-2",
-    name: "Carlos M.",
-    avatarUrl: "",
-    rating: 5,
-    date: "Hace 1 mes",
-    text: "Compré una cesta como regalo de cumpleaños y fue un éxito total. La presentación es preciosa y los jabones tienen una calidad increíble. Volveré a comprar seguro.",
-  },
-  {
-    id: "fallback-3",
-    name: "Ana Belén T.",
-    avatarUrl: "",
-    rating: 5,
-    date: "Hace 3 semanas",
-    text: "Tengo la piel muy sensible y estos jabones naturales son lo único que me sienta bien. El de avena y miel es una maravilla. Gracias por cuidar tanto los ingredientes.",
-  },
-  {
-    id: "fallback-4",
-    name: "Patricia L.",
-    avatarUrl: "",
-    rating: 5,
-    date: "Hace 2 meses",
-    text: "Me enamoré del jabón de rosa mosqueta. Tiene un aroma precioso y la piel me queda suavísima. El envío fue rápido y muy bien empaquetado. ¡Excelente!",
-  },
-  {
-    id: "fallback-5",
-    name: "Roberto S.",
-    avatarUrl: "",
-    rating: 5,
-    date: "Hace 1 semana",
-    text: "Fui a la tienda física y me atendieron genial. Probé varios jabones y al final me llevé 6. El de café exfolia muy bien. Un negocio con mucho amor y dedicación.",
-  }
-];
+// NOTA: No usamos reseñas de ejemplo/ficticias. Mostrar reseñas falsas es engañoso
+// y contrario a la normativa de protección al consumidor. Solo se muestran reseñas
+// REALES obtenidas de Google; si no hay, la sección se oculta por completo.
 
 function StarIcon({ filled }: { filled: boolean }) {
   return (
@@ -131,8 +91,8 @@ function ReviewCard({ review }: { review: any }) {
 export function ReviewsSection() {
   const googleReviewsUrl = "https://search.google.com/local/reviews?placeid=ChIJsdhiNAAXQg0Rn11LyBDmPE4"; 
   
-  const [reviews, setReviews] = useState<any[]>(fallbackReviews);
-  const [globalRating, setGlobalRating] = useState("5,0");
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [globalRating, setGlobalRating] = useState<string | null>(null);
   const [totalReviews, setTotalReviews] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -143,33 +103,26 @@ export function ReviewsSection() {
         if (res.ok) {
           const data = await res.json();
           if (data.reviews) {
-            // Mapeamos los datos de Google a nuestro formato
+            // Mapeamos los datos reales de Google a nuestro formato
             const formattedReviews = data.reviews.map((r: any, index: number) => ({
               id: `google-${index}`,
               name: r.author_name,
               avatarUrl: r.profile_photo_url,
               rating: r.rating,
-              date: r.relative_time_description, 
+              date: r.relative_time_description,
               text: r.text,
             }));
-            
-            // Filtramos para que solo salgan reseñas de 4 o 5 estrellas con texto
-            const bestReviews = formattedReviews.filter((r: any) => r.rating >= 4 && r.text.length > 0);
-            
-            // LA MAGIA: Rellenamos si faltan para llegar a 5
-            let finalReviews = [...bestReviews];
-            if (finalReviews.length < 5) {
-              const huecosFaltantes = 5 - finalReviews.length;
-              finalReviews = [...finalReviews, ...fallbackReviews.slice(0, huecosFaltantes)];
-            }
-            
-            setReviews(finalReviews);
-            setGlobalRating(data.rating ? data.rating.toString().replace('.', ',') : "5,0");
-            setTotalReviews(data.user_ratings_total);
+
+            // Solo reseñas reales de 4-5 estrellas con texto. Sin rellenos ni datos ficticios.
+            const bestReviews = formattedReviews.filter((r: any) => r.rating >= 4 && r.text?.length > 0);
+
+            setReviews(bestReviews);
+            if (data.rating) setGlobalRating(data.rating.toString().replace('.', ','));
+            setTotalReviews(data.user_ratings_total ?? null);
           }
         }
       } catch (error) {
-        console.error("No se pudieron cargar las reseñas, usando fallback.");
+        console.error("No se pudieron cargar las reseñas de Google.");
       } finally {
         setLoading(false);
       }
@@ -177,6 +130,12 @@ export function ReviewsSection() {
 
     fetchGoogleReviews();
   }, []);
+
+  // Sin reseñas REALES no mostramos nada (nunca datos falsos).
+  // Mientras carga tampoco mostramos la sección, para evitar parpadeos.
+  if (loading || reviews.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-20 sm:py-28" style={{ background: "var(--background)" }}>
@@ -214,18 +173,12 @@ export function ReviewsSection() {
           <hr className="w-20 border-t-2 border-stone-400 mx-auto mt-6" />
         </div>
 
-        {/* Grid de reseñas: Cambiado a slice(0, 5) para mostrar las 5 */}
-        {loading ? (
-          <div className="flex justify-center py-10">
-            <div className="w-8 h-8 border-4 border-stone-300 border-t-stone-800 rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reviews.slice(0, 5).map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
-          </div>
-        )}
+        {/* Grid de reseñas reales (máximo 6) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {reviews.slice(0, 6).map((review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))}
+        </div>
 
         {/* CTA a Google Maps */}
         <div className="text-center mt-12">
