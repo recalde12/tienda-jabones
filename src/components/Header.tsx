@@ -20,7 +20,8 @@ export function Header({ session }: { session: Session | null }) {
 
   // Enlace de navegación con estado "activo" (resalta la página actual)
   const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
-    const isActive = pathname === href;
+    // "Productos" también queda activo dentro de /productos/jabon-...
+    const isActive = pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
     return (
       <Link
         href={href}

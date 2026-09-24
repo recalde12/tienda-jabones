@@ -6,10 +6,7 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { useCart } from '@/context/CartContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-
-// --- Constantes de Envío ---
-const COSTO_ENVIO = 4.50;
-const UMBRAL_ENVIO_GRATIS = 40;
+import { SHIPPING_COST as COSTO_ENVIO, FREE_SHIPPING_OVER as UMBRAL_ENVIO_GRATIS } from '@/lib/shipping';
 
 function CheckoutForm({
   deliveryMethod,

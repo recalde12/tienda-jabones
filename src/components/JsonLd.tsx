@@ -3,6 +3,7 @@
 // Se renderizan como <script type="application/ld+json"> en el <head>.
 
 import { siteConfig, SITE_URL } from "@/lib/site";
+import { cleanDescription, productPath, type Product } from "@/lib/products";
 
 function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   return (
@@ -83,20 +84,43 @@ export function LocalBusinessJsonLd() {
   return <JsonLdScript data={data} />;
 }
 
-type ProductForJsonLd = {
-  id: number | string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  stock?: number;
-};
+/** Las imágenes de la BD pueden ser rutas relativas (/images/x.jpg); Google las quiere absolutas. */
+function absoluteUrl(src: string): string {
+  return /^https?:\/\//.test(src) ? src : `${SITE_URL}${src.startsWith("/") ? "" : "/"}${src}`;
+}
+
+/** Schema.org Product de un producto, con su oferta (precio) y su URL propia. */
+function productSchema(p: Product) {
+  const url = `${SITE_URL}${productPath(p)}`;
+  return {
+    "@type": "Product",
+    name: p.name,
+    description: cleanDescription(p.description) || siteConfig.description,
+    image: [p.image_url ? absoluteUrl(p.image_url) : `${SITE_URL}${siteConfig.ogImage}`],
+    sku: String(p.id),
+    url,
+    brand: { "@type": "Brand", name: siteConfig.name },
+    ...(p.weight_grams
+      ? { weight: { "@type": "QuantitativeValue", value: p.weight_grams, unitCode: "GRM" } }
+      : {}),
+    offers: {
+      "@type": "Offer",
+      url,
+      price: Number(p.price).toFixed(2),
+      priceCurrency: "EUR",
+      itemCondition: "https://schema.org/NewCondition",
+      // El stock de la BD no es real: todo lo que está en el catálogo se puede comprar.
+      availability: "https://schema.org/InStock",
+      seller: { "@id": `${SITE_URL}/#business` },
+    },
+  };
+}
 
 /**
- * Lista de productos (ItemList) para la página de catálogo. Permite que Google
- * entienda cada producto con su precio y disponibilidad.
+ * Lista de productos (ItemList) para la página de catálogo. Cada elemento
+ * apunta a la página propia del producto.
  */
-export function ProductListJsonLd({ products }: { products: ProductForJsonLd[] }) {
+export function ProductListJsonLd({ products }: { products: Product[] }) {
   if (!products?.length) return null;
 
   const data = {
@@ -105,24 +129,28 @@ export function ProductListJsonLd({ products }: { products: ProductForJsonLd[] }
     itemListElement: products.map((p, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      item: {
-        "@type": "Product",
-        name: p.name,
-        description: p.description || siteConfig.description,
-        image: p.image_url ? [p.image_url] : [`${SITE_URL}${siteConfig.ogImage}`],
-        brand: { "@type": "Brand", name: siteConfig.name },
-        offers: {
-          "@type": "Offer",
-          price: Number(p.price).toFixed(2),
-          priceCurrency: "EUR",
-          availability:
-            (p.stock ?? 1) > 0
-              ? "https://schema.org/InStock"
-              : "https://schema.org/OutOfStock",
-          url: `${SITE_URL}/productos`,
-          seller: { "@id": `${SITE_URL}/#business` },
-        },
-      },
+      item: productSchema(p),
+    })),
+  };
+
+  return <JsonLdScript data={data} />;
+}
+
+/** Producto individual, para su página propia. */
+export function ProductJsonLd({ product }: { product: Product }) {
+  return <JsonLdScript data={{ "@context": "https://schema.org", ...productSchema(product) }} />;
+}
+
+/** Migas de pan (Inicio > Productos > Jabón X). Google las muestra en los resultados. */
+export function BreadcrumbJsonLd({ items }: { items: { name: string; path: string }[] }) {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: `${SITE_URL}${item.path}`,
     })),
   };
 
