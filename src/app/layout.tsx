@@ -12,6 +12,7 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { CookieBanner } from "@/components/CookieBanner";
 import { CartProvider } from "@/context/CartContext";
 import { siteConfig, SITE_URL } from "@/lib/site";
 import { LocalBusinessJsonLd } from "@/components/JsonLd";
@@ -104,6 +105,11 @@ export default async function RootLayout({
       <body className={`${lato.variable} ${playfair.variable} ${lato.className}`}>
         {gtmEnabled && (
           <>
+            {/* Consent Mode v2: por defecto DENEGADO hasta que el usuario acepte.
+                Debe ejecutarse ANTES de que cargue GTM. */}
+            <Script id="consent-default" strategy="beforeInteractive" dangerouslySetInnerHTML={{
+              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});try{if(localStorage.getItem('cookie-consent')==='granted'){gtag('consent','update',{ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',analytics_storage:'granted'});}}catch(e){}`,
+            }} />
             {/* Google Tag Manager */}
             <Script id="gtm" strategy="afterInteractive" dangerouslySetInnerHTML={{
               __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${GTM_ID}');`,
@@ -124,6 +130,7 @@ export default async function RootLayout({
           <Header session={session} />
           <main>{children}</main>
           <Footer />
+          <CookieBanner />
         </CartProvider>
       </body>
     </html>
