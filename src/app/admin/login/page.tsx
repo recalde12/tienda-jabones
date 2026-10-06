@@ -13,7 +13,13 @@ function AdminLoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/admin/descuentos';
+  // Solo aceptamos destinos dentro del panel (/admin...). Así nadie puede usar
+  // un enlace del login para mandar a otra web tras meter la contraseña.
+  const requested = searchParams.get('redirect');
+  const redirect =
+    requested && /^\/admin(\/|$)/.test(requested) && !requested.startsWith('/admin/login')
+      ? requested
+      : '/admin/descuentos';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

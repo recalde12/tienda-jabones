@@ -1,5 +1,5 @@
 // src/app/admin/descuentos/page.tsx
-// Panel de administraciÃ³n para gestionar cÃ³digos de descuento.
+// Panel de administración para gestionar códigos de descuento.
 // Acceso protegido por middleware (cookie httpOnly). Ver src/middleware.ts
 
 "use client";
@@ -28,9 +28,10 @@ export default function AdminDescuentosPage() {
   const router = useRouter();
   const [codes, setCodes] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [actionMsg, setActionMsg] = useState("");
 
-  // Formulario nuevo cÃ³digo
+  // Formulario nuevo código
   const [form, setForm] = useState({
     code: "",
     type: "percentage",
@@ -46,14 +47,24 @@ export default function AdminDescuentosPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/discount/admin", {
-        credentials: "include", // EnvÃ­a la cookie automÃ¡ticamente
+        credentials: "include", // Envía la cookie automáticamente
       });
       if (res.status === 401) {
         router.push("/admin/login");
         return;
       }
       const data = await res.json();
+      // Si la API falla (p. ej. la BD no responde) devuelve { error }, no una lista.
+      if (!res.ok || !Array.isArray(data)) {
+        setCodes([]);
+        setLoadError(`No se pudieron cargar los códigos${data?.error ? `: ${data.error}` : "."}`);
+        return;
+      }
+      setLoadError("");
       setCodes(data);
+    } catch {
+      setCodes([]);
+      setLoadError("No se pudieron cargar los códigos: error de conexión.");
     } finally {
       setLoading(false);
     }
@@ -77,13 +88,13 @@ export default function AdminDescuentosPage() {
       body: JSON.stringify({ id, active: !current }),
     });
     if (res.ok) {
-      setActionMsg(current ? "Codigo desactivado." : "Codigo activado.");
+      setActionMsg(current ? "Código desactivado." : "Código activado.");
       fetchCodes();
     }
   };
 
   const handleDelete = async (id: number, code: string) => {
-    if (!confirm(`¿Seguro que quieres BORRAR definitivamente el codigo "${code}"? Esta accion no se puede deshacer.`)) return;
+    if (!confirm(`¿Seguro que quieres BORRAR definitivamente el código "${code}"? Esta acción no se puede deshacer.`)) return;
     const res = await fetch("/api/discount/admin", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -91,7 +102,7 @@ export default function AdminDescuentosPage() {
       body: JSON.stringify({ id }),
     });
     if (res.ok) {
-      setActionMsg("Codigo eliminado.");
+      setActionMsg("Código eliminado.");
       fetchCodes();
     }
   };
@@ -99,7 +110,7 @@ export default function AdminDescuentosPage() {
   const handleCreateCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
-    if (!form.code || !form.value) { setFormError("El codigo y el valor son obligatorios."); return; }
+    if (!form.code || !form.value) { setFormError("El código y el valor son obligatorios."); return; }
 
     setFormLoading(true);
     const res = await fetch("/api/discount/admin", {
@@ -120,11 +131,11 @@ export default function AdminDescuentosPage() {
     setFormLoading(false);
 
     if (res.ok) {
-      setActionMsg(`Codigo: "${data.code}" creado correctamente!`);
+      setActionMsg(`Código "${data.code}" creado correctamente.`);
       setForm({ code: "", type: "percentage", value: "", min_amount: "", max_uses: "", expires_at: "" });
       fetchCodes();
     } else {
-      setFormError(data.error || "Error al crear el codigo.");
+      setFormError(data.error || "Error al crear el código.");
     }
   };
 
@@ -133,15 +144,15 @@ export default function AdminDescuentosPage() {
       <div className="container mx-auto max-w-5xl">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-stone-800 font-serif">Codigos de Descuento</h1>
-            <p className="text-stone-500 text-sm mt-1">Crea, activa y desactiva los codigos de tu tienda.</p>
+            <h1 className="text-3xl font-bold text-stone-800 font-serif">Códigos de descuento</h1>
+            <p className="text-stone-500 text-sm mt-1">Crea, activa y desactiva los códigos de tu tienda.</p>
           </div>
           <div className="flex gap-3">
             <button onClick={() => fetchCodes()} className="text-stone-500 hover:text-stone-800 text-sm border border-stone-300 px-3 py-1.5 rounded-lg hover:bg-stone-200 transition-colors">
               Refrescar
             </button>
             <button onClick={handleLogout} className="text-red-600 hover:text-red-800 text-sm border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
-              Cerrar sesion
+              Cerrar sesión
             </button>
           </div>
         </div>
@@ -152,13 +163,13 @@ export default function AdminDescuentosPage() {
           </div>
         )}
 
-        {/* â”€â”€ Formulario crear nuevo cÃ³digo â”€â”€ */}
+        {/* ── Formulario crear nuevo código ── */}
         <div className="bg-white rounded-2xl shadow p-6 mb-8 border border-stone-200">
-          <h2 className="text-xl font-bold text-stone-800 mb-5">Crear nuevo codigo</h2>
+          <h2 className="text-xl font-bold text-stone-800 mb-5">Crear nuevo código</h2>
           <form onSubmit={handleCreateCode} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
             <div className="lg:col-span-1">
-              <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">Codigo</label>
+              <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">Código</label>
               <input
                 type="text"
                 placeholder="ej: VERANO20"
@@ -177,13 +188,13 @@ export default function AdminDescuentosPage() {
                 className="w-full border border-stone-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-stone-500 outline-none bg-white"
               >
                 <option value="percentage">Porcentaje (%)</option>
-                <option value="fixed">Cantidad fija (â‚¬)</option>
+                <option value="fixed">Cantidad fija (€)</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">
-                Valor * {form.type === "percentage" ? "(ej: 10 = 10%)" : "(ej: 5 = 5â‚¬)"}
+                Valor * {form.type === "percentage" ? "(ej: 10 = 10%)" : "(ej: 5 = 5€)"}
               </label>
               <input
                 type="number"
@@ -198,10 +209,10 @@ export default function AdminDescuentosPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">Compra minima</label>
+              <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">Compra mínima</label>
               <input
                 type="number"
-                placeholder="0 = sin mi­nimo"
+                placeholder="0 = sin mínimo"
                 min="0"
                 step="0.01"
                 value={form.min_amount}
@@ -211,10 +222,10 @@ export default function AdminDescuentosPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">Usos maximos</label>
+              <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">Usos máximos</label>
               <input
                 type="number"
-                placeholder="Vacio = ilimitado"
+                placeholder="Vacío = ilimitado"
                 min="1"
                 value={form.max_uses}
                 onChange={(e) => setForm({ ...form, max_uses: e.target.value })}
@@ -234,7 +245,7 @@ export default function AdminDescuentosPage() {
 
             {formError && (
               <div className="sm:col-span-2 lg:col-span-3">
-                <p className="text-red-500 text-sm">âš ï¸ {formError}</p>
+                <p className="text-red-500 text-sm">⚠️ {formError}</p>
               </div>
             )}
 
@@ -244,30 +255,32 @@ export default function AdminDescuentosPage() {
                 disabled={formLoading}
                 className="bg-stone-800 text-white px-8 py-3 rounded-lg font-bold hover:bg-stone-900 transition-colors disabled:opacity-50"
               >
-                {formLoading ? "Creando..." : "Crear Codigo"}
+                {formLoading ? "Creando..." : "Crear código"}
               </button>
             </div>
           </form>
         </div>
 
-        {/* â”€â”€ Tabla de cÃ³digos existentes â”€â”€ */}
+        {/* ── Tabla de códigos existentes ── */}
         <div className="bg-white rounded-2xl shadow border border-stone-200 overflow-hidden">
           <div className="p-6 border-b border-stone-100">
-            <h2 className="text-xl font-bold text-stone-800">Codigos existentes ({codes.length})</h2>
+            <h2 className="text-xl font-bold text-stone-800">Códigos existentes ({codes.length})</h2>
           </div>
 
           {loading ? (
             <div className="p-10 text-center text-stone-400">Cargando...</div>
+          ) : loadError ? (
+            <div className="p-10 text-center text-red-600 text-sm">⚠️ {loadError}</div>
           ) : codes.length === 0 ? (
-            <div className="p-10 text-center text-stone-400">No hay codigos creados todavia.</div>
+            <div className="p-10 text-center text-stone-400">No hay códigos creados todavía.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-stone-50 border-b border-stone-200">
                   <tr>
-                    <th className="text-left px-4 py-3 font-semibold text-stone-600">Codigo</th>
+                    <th className="text-left px-4 py-3 font-semibold text-stone-600">Código</th>
                     <th className="text-left px-4 py-3 font-semibold text-stone-600">Descuento</th>
-                    <th className="text-left px-4 py-3 font-semibold text-stone-600">Minimo</th>
+                    <th className="text-left px-4 py-3 font-semibold text-stone-600">Mínimo</th>
                     <th className="text-left px-4 py-3 font-semibold text-stone-600">Usos</th>
                     <th className="text-left px-4 py-3 font-semibold text-stone-600">Caducidad</th>
                     <th className="text-left px-4 py-3 font-semibold text-stone-600">Estado</th>
@@ -282,10 +295,10 @@ export default function AdminDescuentosPage() {
                         {c.type === "percentage" ? `${c.value}%` : fmt(c.value)}
                       </td>
                       <td className="px-4 py-3 text-stone-500">
-                        {c.min_amount > 0 ? fmt(c.min_amount) : "â€”"}
+                        {c.min_amount > 0 ? fmt(c.min_amount) : "—"}
                       </td>
                       <td className="px-4 py-3 text-stone-500">
-                        {c.used_count} / {c.max_uses ?? "âˆž"}
+                        {c.used_count} / {c.max_uses ?? "∞"}
                       </td>
                       <td className="px-4 py-3 text-stone-500">
                         {c.expires_at
