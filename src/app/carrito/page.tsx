@@ -4,13 +4,12 @@ import { useCart } from "@/context/CartContext";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { SHIPPING_COST as COSTO_ENVIO, FREE_SHIPPING_OVER as UMBRAL_ENVIO_GRATIS } from "@/lib/shipping";
 
 export default function CarritoPage() {
   const { cart, removeFromCart, updateQuantity, totalPrice } = useCart();
 
   // --- LÓGICA DE ENVÍO ---
-  const COSTO_ENVIO = 4.50;
-  const UMBRAL_ENVIO_GRATIS = 40;
   const precioEnvio = totalPrice > UMBRAL_ENVIO_GRATIS ? 0 : COSTO_ENVIO;
 
   // --- ESTADO CÓDIGO DE DESCUENTO ---

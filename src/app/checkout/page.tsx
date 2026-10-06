@@ -6,21 +6,29 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { useCart } from '@/context/CartContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { SHIPPING_COST as COSTO_ENVIO, FREE_SHIPPING_OVER as UMBRAL_ENVIO_GRATIS } from '@/lib/shipping';
+
+// Importes calculados por el servidor (/api/create-payment-intent): son los que se cobran.
+type Pricing = {
+  subtotal: number;
+  discountAmount: number;
+  discountCode: string | null;
+  discountMessage: string | null;
+  shippingCost: number;
+  totalAmount: number;
+  unitPrices: Record<number, number>;
+};
 
 function CheckoutForm({
   deliveryMethod,
-  discountCode,
-  discountAmount,
+  pricing,
 }: {
   deliveryMethod: 'shipping' | 'pickup';
-  discountCode: string | null;
-  discountAmount: number;
+  pricing: Pricing;
 }) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
-  const { cart, totalPrice } = useCart();
+  const { cart } = useCart();
   const supabase = createClientComponentClient();
 
   const [message, setMessage] = useState<string | null>(null);
@@ -34,11 +42,8 @@ function CheckoutForm({
     postalCode: ''
   });
 
-  const precioEnvio = deliveryMethod === 'pickup'
-    ? 0
-    : (totalPrice > UMBRAL_ENVIO_GRATIS ? 0 : COSTO_ENVIO);
-
-  const precioFinal = Math.max(totalPrice - discountAmount + precioEnvio, 0);
+  const precioEnvio = pricing.shippingCost;
+  const precioFinal = pricing.totalAmount;
 
   const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingInfo({ ...shippingInfo, [e.target.name]: e.target.value });
@@ -118,7 +123,7 @@ function CheckoutForm({
           order_id: orderData.id,
           product_id: item.id,
           quantity: item.quantity,
-          price_per_unit: item.price,
+          price_per_unit: pricing.unitPrices[item.id] ?? item.price,
         }));
 
         const { error: itemsError } = await supabase
@@ -127,15 +132,7 @@ function CheckoutForm({
 
         if (itemsError) throw itemsError;
 
-        // Incrementar el contador de usos del código de descuento
-        if (discountCode) {
-          await fetch('/api/discount/validate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: discountCode, cartTotal: totalPrice, markUsed: true }),
-          });
-        }
-
+        // El uso del código de descuento lo cuenta el webhook de Stripe al confirmarse el pago.
         router.push(`/success?payment_intent=${paymentIntent.id}`);
 
       } catch (dbError: any) {
@@ -160,14 +157,14 @@ function CheckoutForm({
         <h4 className="font-semibold text-stone-700 mb-1">Resumen</h4>
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>{fmt(totalPrice)}</span>
+          <span>{fmt(pricing.subtotal)}</span>
         </div>
 
         {/* Descuento */}
-        {discountAmount > 0 && discountCode && (
+        {pricing.discountAmount > 0 && pricing.discountCode && (
           <div className="flex justify-between text-green-700 font-medium">
-            <span className="flex items-center gap-1">🏷️ Descuento ({discountCode})</span>
-            <span>−{fmt(discountAmount)}</span>
+            <span className="flex items-center gap-1">🏷️ Descuento ({pricing.discountCode})</span>
+            <span>−{fmt(pricing.discountAmount)}</span>
           </div>
         )}
 
@@ -245,7 +242,8 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 function CheckoutPageInner() {
   const [clientSecret, setClientSecret] = useState("");
-  const [discountAmount, setDiscountAmount] = useState(0);
+  const [pricing, setPricing] = useState<Pricing | null>(null);
+  const [loadError, setLoadError] = useState("");
   const { cart } = useCart();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -265,6 +263,7 @@ function CheckoutPageInner() {
 
       try {
         setClientSecret("");
+        setLoadError("");
         const res = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -275,10 +274,15 @@ function CheckoutPageInner() {
           }),
         });
         const data = await res.json();
+        if (!res.ok) {
+          setLoadError(data?.error || "No se pudo preparar el pago. Inténtalo de nuevo.");
+          return;
+        }
+        setPricing(data);
         setClientSecret(data.clientSecret);
-        setDiscountAmount(data.discountAmount ?? 0);
       } catch (error) {
         console.error("Error iniciando pago:", error);
+        setLoadError("No se pudo preparar el pago. Revisa tu conexión e inténtalo de nuevo.");
       }
     }
 
@@ -307,9 +311,14 @@ function CheckoutPageInner() {
         <div className="bg-stone-800 p-6 text-white text-center">
           <h1 className="text-2xl font-bold">Completar Pedido</h1>
           <p className="text-sm text-stone-300 mt-1">Finaliza tu compra de forma segura</p>
-          {discountCode && (
+          {pricing?.discountCode && (
             <div className="mt-2 inline-flex items-center gap-1 bg-green-700 text-green-100 text-xs font-semibold px-3 py-1 rounded-full">
-              🏷️ Código aplicado: {discountCode}
+              🏷️ Código aplicado: {pricing.discountCode}
+            </div>
+          )}
+          {discountCode && pricing && !pricing.discountCode && (
+            <div className="mt-2 inline-flex items-center gap-1 bg-amber-100 text-amber-900 text-xs font-semibold px-3 py-1 rounded-full">
+              ⚠️ El código {discountCode} no se ha aplicado{pricing.discountMessage ? `: ${pricing.discountMessage}` : '.'}
             </div>
           )}
         </div>
@@ -345,12 +354,15 @@ function CheckoutPageInner() {
         </div>
 
         <div className="p-6 md:p-8 pt-4">
-          {clientSecret ? (
+          {loadError ? (
+            <div className="py-10 text-center text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4">
+              ⚠️ {loadError}
+            </div>
+          ) : clientSecret && pricing ? (
             <Elements options={options} stripe={stripePromise}>
               <CheckoutForm
                 deliveryMethod={deliveryMethod}
-                discountCode={discountCode}
-                discountAmount={discountAmount}
+                pricing={pricing}
               />
             </Elements>
           ) : (

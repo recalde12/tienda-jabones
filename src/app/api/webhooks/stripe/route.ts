@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Resend } from 'resend';
 import { headers } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
@@ -16,6 +16,38 @@ const senderEmail = 'Pedidos Malaura <pedidos@laflordemalaura.com>'; // O tu dom
 
 // Función de espera (para dar tiempo a que se guarde el pedido en la BD)
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Suma un uso al código de descuento del pago, solo cuando Stripe lo confirma.
+ * Es idempotente: marca el PaymentIntent con discount_counted=yes para que, si
+ * Stripe reenvía el evento, no se cuente dos veces.
+ */
+async function countDiscountUse(supabaseAdmin: SupabaseClient, paymentIntentId: string) {
+  // Leemos el PaymentIntent actual (no el del evento) para ver si ya se contó.
+  const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+  const code = pi.metadata?.discount_code;
+  if (!code || code === 'ninguno' || pi.metadata?.discount_counted === 'yes') return;
+
+  // Incremento con control de concurrencia: solo actualiza si nadie lo cambió entre medias.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data: dc } = await supabaseAdmin
+      .from('discount_codes')
+      .select('id, used_count')
+      .eq('code', code)
+      .maybeSingle();
+    if (!dc) break;
+
+    const { data: updated } = await supabaseAdmin
+      .from('discount_codes')
+      .update({ used_count: dc.used_count + 1 })
+      .eq('id', dc.id)
+      .eq('used_count', dc.used_count)
+      .select('id');
+    if (updated?.length) break;
+  }
+
+  await stripe.paymentIntents.update(paymentIntentId, { metadata: { discount_counted: 'yes' } });
+}
 
 export async function POST(request: Request) {
   
@@ -37,6 +69,13 @@ export async function POST(request: Request) {
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     console.log(`💰 Pago recibido: ${paymentIntent.id}`);
+
+    // 0. CONTAR EL USO DEL CÓDIGO DE DESCUENTO (independiente de los emails)
+    try {
+      await countDiscountUse(supabaseAdmin, paymentIntent.id);
+    } catch (error) {
+      console.error('❌ Error contando el uso del código de descuento:', error);
+    }
 
     // 1. ESPERAR: Damos 3 segundos para asegurar que el frontend guardó el pedido en Supabase
     await sleep(3000);

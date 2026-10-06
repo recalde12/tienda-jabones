@@ -1,7 +1,11 @@
 // src/app/api/discount/validate/route.ts
+// Vista previa del descuento en el carrito. NO cuenta usos: eso lo hace el webhook
+// de Stripe cuando el pago se confirma. El cobro real se recalcula en el servidor
+// (create-payment-intent), así que aquí el total del carrito es solo orientativo.
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { evaluateDiscount, findActiveDiscount } from '@/lib/pricing';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,73 +14,36 @@ const supabase = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { code, cartTotal, markUsed } = await request.json();
+    const { code, cartTotal } = await request.json();
 
     if (!code || typeof code !== 'string') {
       return NextResponse.json({ valid: false, message: 'Código no proporcionado.' }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-      .from('discount_codes')
-      .select('*')
-      .eq('active', true)
-      .ilike('code', code.trim())
-      .single();
-
-    if (error || !data) {
-      return NextResponse.json({ valid: false, message: 'Código no válido o no existe.' });
+    const subtotal = Number(cartTotal);
+    if (!Number.isFinite(subtotal) || subtotal < 0) {
+      return NextResponse.json({ valid: false, message: 'Importe del carrito no válido.' }, { status: 400 });
     }
 
-    // Comprobar caducidad
-    if (data.expires_at && new Date(data.expires_at) < new Date()) {
-      return NextResponse.json({ valid: false, message: 'Este código ha caducado.' });
-    }
-
-    // Comprobar usos máximos
-    if (data.max_uses !== null && data.used_count >= data.max_uses) {
-      return NextResponse.json({ valid: false, message: 'Este código ha alcanzado el límite de usos.' });
-    }
-
-    // Comprobar importe mínimo
-    if (cartTotal < data.min_amount) {
-      return NextResponse.json({
-        valid: false,
-        message: `Este código requiere un mínimo de ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(data.min_amount)}.`,
-      });
-    }
-
-    // Calcular el descuento
-    let discountAmount = 0;
-    if (data.type === 'percentage') {
-      discountAmount = (cartTotal * data.value) / 100;
-    } else {
-      discountAmount = Math.min(data.value, cartTotal);
-    }
-    discountAmount = Math.round(discountAmount * 100) / 100;
-
-    // Si markUsed=true, incrementar el contador de usos
-    if (markUsed) {
-      await supabase
-        .from('discount_codes')
-        .update({ used_count: data.used_count + 1 })
-        .eq('id', data.id);
+    const discount = evaluateDiscount(await findActiveDiscount(supabase, code), subtotal);
+    if (!discount.valid) {
+      return NextResponse.json({ valid: false, message: discount.message });
     }
 
     return NextResponse.json({
       valid: true,
-      message: data.type === 'percentage'
-        ? `¡Código aplicado! ${data.value}% de descuento.`
-        : `¡Código aplicado! ${data.value}€ de descuento.`,
+      message: discount.type === 'percentage'
+        ? `¡Código aplicado! ${discount.value}% de descuento.`
+        : `¡Código aplicado! ${discount.value}€ de descuento.`,
       discount: {
-        id: data.id,
-        code: data.code,
-        type: data.type,
-        value: data.value,
-        discountAmount,
+        code: discount.code,
+        type: discount.type,
+        value: discount.value,
+        discountAmount: discount.amount,
       },
     });
 
-  } catch (err: any) {
+  } catch {
     return NextResponse.json({ valid: false, message: 'Error del servidor.' }, { status: 500 });
   }
 }
