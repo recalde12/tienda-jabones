@@ -58,7 +58,11 @@ export function Header({ session }: { session: Session | null }) {
 
   // Componente del Icono del Carrito (para reutilizarlo y no repetir código)
   const CartIcon = () => (
-    <Link href="/carrito" className="relative flex items-center text-stone-400 hover:text-white transition-colors p-1">
+    <Link
+      href="/carrito"
+      aria-label={totalItems > 0 ? `Carrito (${totalItems} ${totalItems === 1 ? 'producto' : 'productos'})` : 'Carrito'}
+      className="relative flex items-center text-stone-300 hover:text-white transition-colors p-1"
+    >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
       </svg>
@@ -90,9 +94,12 @@ export function Header({ session }: { session: Session | null }) {
           <CartIcon />
           
           {/* Botón Hamburguesa */}
-          <button 
+          <button
+            type="button"
             className="text-stone-300 focus:outline-none"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? (
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">

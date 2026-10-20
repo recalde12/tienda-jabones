@@ -6,7 +6,7 @@ import Link from "next/link";
 import { AddToCart } from "@/components/AddToCart";
 import { formatPrice, formatWeight, productPath, type Product } from "@/lib/products";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const href = productPath(product);
   const weight = formatWeight(product);
 
@@ -17,6 +17,7 @@ export function ProductCard({ product }: { product: Product }) {
           src={product.image_url}
           alt={`Imagen de ${product.name}`}
           fill
+          priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           style={{ objectFit: 'cover' }}
           className="transition-transform duration-500 ease-out group-hover:scale-105"

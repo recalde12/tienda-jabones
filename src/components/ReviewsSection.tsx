@@ -51,7 +51,7 @@ function ReviewCard({ review }: { review: any }) {
         
         <div>
           <p className="font-semibold text-stone-800 leading-tight">{review.name}</p>
-          <p className="text-xs text-stone-400">{review.date}</p>
+          <p className="text-xs text-stone-500">{review.date}</p>
         </div>
         
         {/* Logo Google */}
@@ -164,7 +164,7 @@ export function ReviewsSection() {
                   <StarIcon key={i} filled={true} />
                 ))}
               </div>
-              <span className="text-sm text-stone-500">
+              <span className="text-sm text-stone-600">
                 {totalReviews ? `Basado en ${totalReviews} reseñas de Google` : "Basado en reseñas de Google"}
               </span>
             </div>

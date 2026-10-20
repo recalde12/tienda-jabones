@@ -118,7 +118,7 @@ export function Footer() {
               <br />
               {siteConfig.business.address.region}
             </address>
-            <p className="mt-4 text-xs text-stone-500">
+            <p className="mt-4 text-xs text-stone-400">
               Horario: Lun–Vie · 10:00–18:00
             </p>
           </div>
@@ -127,7 +127,7 @@ export function Footer() {
 
       {/* --- Barra inferior --- */}
       <div className="border-t border-stone-800">
-        <div className="container mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-500">
+        <div className="container mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-400">
           <p>© {year} La Flor de Malaura. Todos los derechos reservados.</p>
           <p>Jabones artesanales hechos a mano en Madrid 🌿</p>
         </div>

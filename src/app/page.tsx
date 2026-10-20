@@ -37,7 +37,7 @@ export default function HomePage() {
       {/* ===== SECCIÓN BIENVENIDA ===== */}
       <section className="py-20 sm:py-28" style={{ background: "var(--background)" }}>
         <div className="container mx-auto px-4 text-center flex flex-col items-center">
-          <span className="text-sm font-semibold tracking-widest text-stone-500 uppercase mb-3">
+          <span className="text-sm font-semibold tracking-widest text-stone-600 uppercase mb-3">
             Jabones Artesanales Naturales
           </span>
           <h1 className="text-4xl md:text-6xl font-bold text-stone-800 font-serif leading-tight max-w-3xl">
@@ -75,7 +75,7 @@ export default function HomePage() {
               >
                 <span className="text-5xl block mb-5">{feature.emoji}</span>
                 <h3 className="text-xl font-bold text-stone-100 mb-3">{feature.title}</h3>
-                <p className="text-stone-400 text-sm leading-relaxed">{feature.description}</p>
+                <p className="text-stone-300 text-sm leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>

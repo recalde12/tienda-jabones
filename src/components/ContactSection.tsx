@@ -1,5 +1,7 @@
 // src/components/ContactSection.tsx
 
+import { MapEmbed } from "@/components/MapEmbed";
+
 export function ContactSection() {
   // --- ¡Personaliza esta información! ---
   const storeAddress = "Nueva Imagen Peluqueros, Av. del Alcalde Antonio Chapado, 29, S.M de la Vega Madrid";
@@ -18,9 +20,8 @@ export function ContactSection() {
   // <--- PON AQUÍ EL LINK DE TU FACEBOOK
   const facebookUrl = "https://www.facebook.com/profile.php?id=61582573412425&locale=es_ES"; 
 
-  const mapEmbedCode = `
-<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1902.4359717900354!2d-3.575681434833237!3d40.20747049350152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd42177c087963f5%3A0xaa1ff7a205e0ac6b!2sNueva%20Imagen%20Peluqueros!5e1!3m2!1ses!2ses!4v1761570020529!5m2!1ses!2ses" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-  `;
+  const mapEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1902.4359717900354!2d-3.575681434833237!3d40.20747049350152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd42177c087963f5%3A0xaa1ff7a205e0ac6b!2sNueva%20Imagen%20Peluqueros!5e1!3m2!1ses!2ses!4v1761570020529!5m2!1ses!2ses";
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("Av. del Alcalde Antonio Chapado 29, San Martín de la Vega, Madrid")}`;
 
   return (
     <section className="bg-stone-300 py-16 sm:py-24 text-stone-800">
@@ -41,10 +42,14 @@ export function ContactSection() {
             </p>
             
             {/* Contenedor del Mapa */}
-            <div 
-              className="aspect-[16/9] w-full overflow-hidden rounded-lg shadow-lg border border-gray-200"
-              dangerouslySetInnerHTML={{ __html: mapEmbedCode }}
-            />
+            <div className="aspect-[16/9] w-full overflow-hidden rounded-lg shadow-lg border border-gray-200">
+              <MapEmbed
+                embedUrl={mapEmbedUrl}
+                mapsUrl={mapsUrl}
+                address="Av. del Alcalde Antonio Chapado, 29 · San Martín de la Vega (Madrid)"
+                title="Mapa de la tienda La Flor de Malaura en San Martín de la Vega"
+              />
+            </div>
           </div>
           
           {/* --- Columna 2: Info de Contacto --- */}
@@ -67,7 +72,7 @@ export function ContactSection() {
                 </p>
                 <a 
                   href={`mailto:${contactEmail}`}
-                  className="text-lg text-green-600 hover:text-green-700 font-medium"
+                  className="text-lg text-green-800 hover:text-green-900 font-medium"
                 >
                   {contactEmail}
                 </a>
@@ -86,7 +91,7 @@ export function ContactSection() {
                   {/* Teléfono 1 */}
                   <a 
                     href={`tel:${phoneStore.replace(/\s/g, '')}`}
-                    className="text-lg text-green-600 hover:text-green-700 font-medium w-fit"
+                    className="text-lg text-green-800 hover:text-green-900 font-medium w-fit"
                   >
                     {phoneStore}
                   </a>
@@ -94,7 +99,7 @@ export function ContactSection() {
                   {/* Teléfono 2 */}
                   <a 
                     href={`tel:${phoneStore2.replace(/\s/g, '')}`}
-                    className="text-lg text-green-600 hover:text-green-700 font-medium w-fit"
+                    className="text-lg text-green-800 hover:text-green-900 font-medium w-fit"
                   >
                     {phoneStore2}
                   </a>
@@ -102,7 +107,7 @@ export function ContactSection() {
                   {/* WhatsApp 1 */}
                   <a 
                     href={`https://wa.me/${phoneWhatsApp.replace(/\s/g, '')}`}
-                    className="flex items-center gap-2 text-lg text-green-600 hover:text-green-700 font-medium mt-2 w-fit"
+                    className="flex items-center gap-2 text-lg text-green-800 hover:text-green-900 font-medium mt-2 w-fit"
                   >
                     <span>WhatsApp: {phoneWhatsApp}</span>
                   </a>
@@ -110,7 +115,7 @@ export function ContactSection() {
                   {/* WhatsApp 2 */}
                   <a 
                     href={`https://wa.me/${phoneWhatsApp2.replace(/\s/g, '')}`}
-                    className="flex items-center gap-2 text-lg text-green-600 hover:text-green-700 font-medium w-fit"
+                    className="flex items-center gap-2 text-lg text-green-800 hover:text-green-900 font-medium w-fit"
                   >
                     <span>WhatsApp: {phoneWhatsApp2}</span>
                   </a>
@@ -134,7 +139,7 @@ export function ContactSection() {
                     href={instagramUrl}
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-2 text-lg text-pink-600 hover:text-pink-700 font-medium transition-colors"
+                    className="inline-flex items-center gap-2 text-lg text-pink-800 hover:text-pink-900 font-medium transition-colors"
                   >
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
@@ -159,7 +164,7 @@ export function ContactSection() {
                     href={facebookUrl}
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-2 text-lg text-blue-700 hover:text-blue-800 font-medium transition-colors"
+                    className="inline-flex items-center gap-2 text-lg text-blue-800 hover:text-blue-900 font-medium transition-colors"
                   >
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 

@@ -13,28 +13,31 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 const slideData = [
-  { 
-    id: 1, 
-    src: "/slider/InicioSlide.png", 
-    alt: "Jabón Malaura", 
+  {
+    id: 1,
+    src: "/slider/InicioSlide.jpg",
+    alt: "Surtido de jabones artesanales naturales de La Flor de Malaura con lavanda, eucalipto y granos de café",
     logoSrc: "/logo-malaura-small.png",
     position: "center center"
   },
-  { 
-    id: 2, 
-    src: "/slider/Slide2.png", 
-    alt: "Flor de mimbre", 
-    logoSrc: "/logo-malaura-small.png", 
-    position: "center center" 
+  {
+    id: 2,
+    src: "/slider/Slide2.jpg",
+    alt: "Hechos a mano, con la suavidad del hogar: elaboración artesanal de jabones naturales en La Flor de Malaura",
+    logoSrc: "/logo-malaura-small.png",
+    position: "center center"
   },
-  { 
-    id: 3, 
-    src: "/slider/Slide3.png", 
-    alt: "Loción Malaura", 
-    logoSrc: "/logo-malaura-small.png", 
-    position: "center center" 
+  {
+    id: 3,
+    src: "/slider/Slide3.png",
+    alt: "Jabones personalizados para eventos, bodas y comuniones, novedad Vendimia dulce y productos 100% naturales",
+    logoSrc: "/logo-malaura-small.png",
+    position: "center center"
   },
 ];
+
+const buyButtonClasses =
+  "inline-block px-7 py-2.5 text-sm md:px-10 md:py-3.5 md:text-lg bg-white/95 text-stone-900 font-bold tracking-wide rounded-full shadow-xl hover:bg-white transition-all hover:-translate-y-0.5";
 
 export function HeroSlider() {
   // CAMBIO 1: Altura mucho menor en móvil (h-[300px]) para que la foto no se corte tanto
@@ -45,7 +48,9 @@ export function HeroSlider() {
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={0} slidesPerView={1} navigation pagination={{ clickable: true }}
-        autoplay={{ delay: 5000, disableOnInteraction: false }} loop
+        // `rewind` en vez de `loop`: loop duplica y reordena las diapositivas al arrancar,
+        // lo que retrasaba varios segundos el pintado de la primera foto (LCP).
+        autoplay={{ delay: 5000, disableOnInteraction: false }} rewind
         className={`w-full ${sliderHeightClasses}`}
       >
         {slideData.map((slide, index) => (
@@ -55,8 +60,9 @@ export function HeroSlider() {
               <Image 
                 src={slide.src} 
                 alt={slide.alt} 
-                fill 
-                priority={index === 0} 
+                fill
+                sizes="100vw"
+                priority={index === 0}
                 style={{
                   objectFit: 'cover', // Cubre todo el espacio (recorta si es necesario)
                   objectPosition: slide.position || 'center'
@@ -79,9 +85,10 @@ export function HeroSlider() {
                       {/* Logo: Más pequeño en móvil */}
                       <div className="relative h-8 w-24 md:h-16 md:w-60 flex-shrink-0">
                         <Image
-                          src="/logo-malaura-banner.png" 
-                          alt="Malaura Logo"
+                          src="/logo-malaura-banner.png"
+                          alt="La Flor de Malaura"
                           fill
+                          sizes="240px"
                           className="object-contain" 
                         />
                       </div>
@@ -102,10 +109,8 @@ export function HeroSlider() {
                 {/* 1. Botón en el CENTRO (Slide 1) */}
                 {index === 0 && (
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 mt-8">
-                    <Link href="/productos" passHref>
-                      <button className="px-7 py-2.5 text-sm md:px-10 md:py-3.5 md:text-lg bg-white/95 text-stone-900 font-bold tracking-wide rounded-full shadow-xl hover:bg-white transition-all hover:-translate-y-0.5">
-                        COMPRAR
-                      </button>
+                    <Link href="/productos" className={buyButtonClasses}>
+                      COMPRAR
                     </Link>
                   </div>
                 )}
@@ -113,19 +118,17 @@ export function HeroSlider() {
                 {/* 2. Botón ABAJO IZQUIERDA (Resto de slides) */}
                 {index !== 0 && (
                   <div className="absolute bottom-8 left-4 md:bottom-14 md:left-14 z-30">
-                    <Link href="/productos" passHref>
-                      <button className="px-7 py-2.5 text-sm md:px-10 md:py-3.5 md:text-lg bg-white/95 text-stone-900 font-bold tracking-wide rounded-full shadow-xl hover:bg-white transition-all hover:-translate-y-0.5">
-                        COMPRAR
-                      </button>
+                    <Link href="/productos" className={buyButtonClasses}>
+                      COMPRAR
                     </Link>
                   </div>
                 )}
 
-                {/* Logo inferior derecha (Opcional: Ocultar en móvil si molesta) */}
+                {/* Logo inferior derecha (decorativo; oculto en móvil) */}
                 {slide.logoSrc && (
-                  <div className="absolute bottom-6 right-4 md:bottom-12 md:right-12 z-30 hidden md:block">
+                  <div className="absolute bottom-6 right-4 md:bottom-12 md:right-12 z-30 hidden md:block" aria-hidden="true">
                     <div className="relative w-12 h-12 md:w-20 md:h-20">
-                      <Image src={slide.logoSrc} alt="Logo Pequeño" fill className="rounded-full shadow-lg object-cover" />
+                      <Image src={slide.logoSrc} alt="" fill sizes="80px" className="rounded-full shadow-lg object-cover" />
                     </div>
                   </div>
                 )}
