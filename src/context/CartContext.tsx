@@ -17,7 +17,7 @@ interface CartItem {
 interface CartContextType {
   cart: CartItem[];
   // Actualizamos las funciones para que acepten el color Y el acabado
-  addToCart: (product: any, color?: string | null, finish?: string | null) => void;
+  addToCart: (product: any, color?: string | null, finish?: string | null, quantity?: number) => void;
   removeFromCart: (productId: number, color?: string | null, finish?: string | null) => void;
   updateQuantity: (
     productId: number, 
@@ -37,7 +37,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
 
   // --- FUNCIÓN DE AÑADIR (Actualizada) ---
-  const addToCart = (product: any, color: string | null = null, finish: string | null = null) => {
+  const addToCart = (product: any, color: string | null = null, finish: string | null = null, quantity: number = 1) => {
+    const qty = Math.max(1, Math.floor(quantity));
     setCart((prevCart) => {
       // Buscamos si ya existe un item con el MISMO id, MISMO color Y MISMO acabado
       const existingItem = prevCart.find((item) => 
@@ -50,15 +51,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // Si existe la combinación exacta, aumentamos cantidad
         return prevCart.map((item) =>
           (item.id === product.id && item.selectedColor === color && item.selectedFinish === finish)
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + qty }
             : item
         );
       } else {
         // Si es una combinación nueva, lo añadimos
         return [...prevCart, { 
           ...product, 
-          quantity: 1, 
-          selectedColor: color, 
+          quantity: qty,
+          selectedColor: color,
           selectedFinish: finish 
         }];
       }

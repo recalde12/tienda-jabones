@@ -2,18 +2,9 @@
 
 "use client";
 
-import { useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { ProductCard } from '@/components/ProductCard';
-
-// Definimos la estructura del producto
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string;
-  stock: number;
-}
+import { categoryFromParam, categoryToParam, type Product } from '@/lib/products';
 
 interface ProductTabsProps {
   panales: Product[];
@@ -22,29 +13,29 @@ interface ProductTabsProps {
   ProductosEspeciales: Product[];
 }
 
-// 1. Definimos las categorías aquí para no repetir código
-const categories = [
+// Categorías (el id coincide con la columna `category` de la BD)
+export const CATALOG_TABS = [
   { id: 'panales', label: 'Panales' },
-  { id: 'al_corte', label: 'Al Corte' },
-  { id: 'cestas', label: 'Cestas' },
-  { id: 'ProductosEspeciales', label: 'Productos Especiales' },
+  { id: 'al_corte', label: 'Al corte' },
+  { id: 'cestas', label: 'Cestas y packs' },
+  { id: 'ProductosEspeciales', label: 'Productos especiales' },
 ];
 
 function ProductGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
-      <div className="max-w-md mx-auto text-center py-16 px-6">
-        <span className="text-5xl block mb-4">🧺</span>
-        <p className="text-stone-600 leading-relaxed">
-          Contáctanos por correo para hacer tu pedido y elegir la cantidad que deseas.
-          <span className="block mt-1 font-semibold text-stone-800">¡Te esperamos!</span>
+      <div className="max-w-md mx-auto text-center py-16 px-6 flex flex-col items-center gap-4">
+        <div className="hexagon w-20 h-[70px] bg-honey" aria-hidden="true" />
+        <p className="text-cocoa leading-relaxed">
+          Escríbenos para hacer tu pedido y elegir la cantidad que deseas.
+          <span className="block mt-1 font-bold text-espresso">¡Te esperamos!</span>
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
       {products.map((product, index) => (
         // Las primeras fotos se ven nada más entrar: se cargan con prioridad (mejora el LCP)
         <ProductCard key={product.id} product={product} priority={index < 2} />
@@ -54,86 +45,55 @@ function ProductGrid({ products }: { products: Product[] }) {
 }
 
 export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: ProductTabsProps) {
-  const [activeTab, setActiveTab] = useState('panales');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Estado para abrir/cerrar el menú móvil
+  // La pestaña activa sale SIEMPRE de la URL (?categoria=), así coinciden el menú,
+  // los enlaces compartidos y los clics en las pestañas.
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab = categoryFromParam(searchParams.get('categoria'));
 
-  // Encontrar el nombre de la categoría activa para mostrarlo en el botón móvil
-  const activeLabel = categories.find(c => c.id === activeTab)?.label;
+  const byTab: Record<string, Product[]> = {
+    panales,
+    al_corte: alCorte,
+    cestas,
+    ProductosEspeciales,
+  };
 
-  const handleTabClick = (id: string) => {
-    setActiveTab(id);
-    setIsDropdownOpen(false); // Cerrar el menú al seleccionar
+  const selectTab = (id: string) => {
+    // replaceState se sincroniza con el router de Next (useSearchParams) sin recargar la página
+    const params = new URLSearchParams(searchParams.toString());
+    const value = categoryToParam(id);
+    if (value) params.set('categoria', value);
+    else params.delete('categoria');
+    const query = params.toString();
+    window.history.replaceState(null, '', query ? `${pathname}?${query}` : pathname);
   };
 
   return (
     <div className="w-full">
-      
-      {/* --- VISTA MÓVIL: MENÚ DESPLEGABLE (Visible solo en md:hidden) --- */}
-      <div className="md:hidden relative mb-8 px-4">
-        <label className="block text-stone-600 text-sm font-semibold mb-2">
-          Selecciona una categoría:
-        </label>
-        
-        {/* Botón principal del desplegable */}
-        <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="w-full flex justify-between items-center bg-white border border-stone-300 text-stone-800 font-semibold py-3 px-4 rounded-lg shadow-sm"
-        >
-          <span>{activeLabel}</span>
-          {/* Icono de flecha que gira si está abierto */}
-          <svg 
-            className={`w-5 h-5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        {/* Lista de opciones (Aparece solo si isDropdownOpen es true) */}
-        {isDropdownOpen && (
-          <div className="absolute top-full left-4 right-4 mt-2 bg-white border border-stone-200 rounded-lg shadow-xl z-20 overflow-hidden">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => handleTabClick(cat.id)}
-                className={`w-full text-left py-3 px-4 border-b border-stone-100 last:border-none hover:bg-stone-50 transition-colors ${
-                  activeTab === cat.id ? 'bg-stone-100 font-bold text-stone-900' : 'text-stone-600'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-
-      {/* --- VISTA DE ESCRITORIO: CONTROL SEGMENTADO (Oculto en móvil 'hidden md:flex') --- */}
-      <div className="hidden md:flex w-full justify-center mb-12">
-        <div className="inline-flex items-center gap-1 bg-stone-100 rounded-full p-1.5 shadow-inner">
-          {categories.map((cat) => (
+      <div role="tablist" aria-label="Categorías" className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 mb-10 sm:justify-center -mx-4 px-4">
+        {CATALOG_TABS.map((cat) => {
+          const active = activeTab === cat.id;
+          return (
             <button
               key={cat.id}
-              onClick={() => setActiveTab(cat.id)}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-full transition-all duration-200 ${
-                activeTab === cat.id
-                  ? 'bg-stone-800 text-white shadow'
-                  : 'text-stone-600 hover:text-stone-900'
+              type="button"
+              role="tab"
+              aria-selected={active}
+              aria-controls="catalogo-panel"
+              onClick={() => selectTab(cat.id)}
+              className={`flex-none min-h-[48px] px-6 rounded-full border-2 text-[15px] font-bold transition-colors ${
+                active ? 'bg-espresso border-espresso text-cream' : 'bg-cream border-edge text-espresso hover:border-espresso'
               }`}
             >
               {cat.label}
+              <span className={`ml-2 text-xs ${active ? 'text-latte' : 'text-cocoa'}`}>{byTab[cat.id].length}</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-
-      {/* --- CONTENIDO (Igual para todos) --- */}
-      <div>
-        {activeTab === 'panales' && <ProductGrid products={panales} />}
-        {activeTab === 'al_corte' && <ProductGrid products={alCorte} />}
-        {activeTab === 'cestas' && <ProductGrid products={cestas} />}
-        {activeTab === 'ProductosEspeciales' && <ProductGrid products={ProductosEspeciales} />}
+      <div id="catalogo-panel" role="tabpanel">
+        <ProductGrid products={byTab[activeTab]} />
       </div>
     </div>
   );

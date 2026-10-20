@@ -11,8 +11,8 @@ export function ProductCard({ product, priority = false }: { product: Product; p
   const weight = formatWeight(product);
 
   return (
-    <div className="group flex flex-col bg-white rounded-2xl border border-stone-200/70 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      <Link href={href} aria-label={`Ver ${product.name}`} className="relative block w-full aspect-square overflow-hidden bg-stone-100">
+    <div className="group flex flex-col bg-cream rounded-2xl border border-line shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      <Link href={href} aria-label={`Ver ${product.name}`} className="relative block w-full aspect-square overflow-hidden bg-sand">
         <Image
           src={product.image_url}
           alt={`Imagen de ${product.name}`}
@@ -27,22 +27,22 @@ export function ProductCard({ product, priority = false }: { product: Product; p
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex-grow">
           <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-semibold text-stone-900 font-serif leading-snug line-clamp-2">
-              <Link href={href} className="hover:text-stone-600 transition-colors">
+            <h2 className="text-lg font-semibold text-espresso font-serif leading-snug line-clamp-2">
+              <Link href={href} className="hover:text-honey-dark transition-colors">
                 {product.name}
               </Link>
             </h2>
             <div className="shrink-0 text-right">
-              <p className="text-lg font-bold text-stone-800 whitespace-nowrap">
+              <p className="text-lg font-bold text-espresso whitespace-nowrap">
                 {formatPrice(product.price)}
               </p>
-              {weight && <p className="text-xs text-stone-500">{weight}</p>}
+              {weight && <p className="text-xs text-cocoa">{weight}</p>}
             </div>
           </div>
-          <p className="text-sm text-stone-500 mt-2 leading-relaxed line-clamp-2">{product.description}</p>
+          <p className="text-sm text-cocoa mt-2 leading-relaxed line-clamp-2">{product.description}</p>
           <Link
             href={href}
-            className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-stone-800 underline-offset-4 hover:underline"
+            className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-espresso underline-offset-4 hover:underline"
           >
             Ver detalles <span aria-hidden="true">→</span>
           </Link>

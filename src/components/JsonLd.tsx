@@ -156,3 +156,19 @@ export function BreadcrumbJsonLd({ items }: { items: { name: string; path: strin
 
   return <JsonLdScript data={data} />;
 }
+
+/** Preguntas frecuentes (FAQPage). Deben coincidir con las que se muestran en la página. */
+export function FaqJsonLd({ faqs }: { faqs: { q: string; a: string }[] }) {
+  if (!faqs.length) return null;
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+
+  return <JsonLdScript data={data} />;
+}

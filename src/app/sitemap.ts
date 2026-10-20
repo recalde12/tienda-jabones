@@ -26,6 +26,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.9,
     },
+    {
+      url: `${SITE_URL}/bodas`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
   ];
 
   // Una entrada por producto. Si la BD falla, servimos al menos las páginas de arriba.

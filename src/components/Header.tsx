@@ -8,6 +8,30 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import { FREE_SHIPPING_OVER } from '@/lib/shipping';
+
+const navItems = [
+  { href: '/productos', label: 'Jabones' },
+  { href: '/productos?categoria=cestas', label: 'Cestas y packs' },
+  { href: '/bodas', label: 'Bodas y comuniones' },
+  { href: '/#historia', label: 'Nuestra historia' },
+  { href: '/#club', label: 'Club Malaura' },
+];
+
+function Logo() {
+  return (
+    <Link href="/" className="flex items-center gap-3 text-espresso">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" className="flex-none">
+        <polygon points="8.5,2 25.5,2 34,17 25.5,32 8.5,32 0,17" fill="#E9B96A" />
+        <polygon points="12,9 22,9 27,17 22,25 12,25 7,17" fill="none" stroke="#2A201A" strokeWidth="1.6" />
+      </svg>
+      <span className="flex flex-col leading-none">
+        <span className="text-[11px] tracking-[0.3em] uppercase text-cocoa">La Flor de</span>{' '}
+        <span className="font-serif italic font-bold text-[26px]">Malaura</span>
+      </span>
+    </Link>
+  );
+}
 
 export function Header({ session }: { session: Session | null }) {
   const { cart } = useCart();
@@ -18,28 +42,6 @@ export function Header({ session }: { session: Session | null }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
-  // Enlace de navegación con estado "activo" (resalta la página actual)
-  const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
-    // "Productos" también queda activo dentro de /productos/jabon-...
-    const isActive = pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
-    return (
-      <Link
-        href={href}
-        onClick={() => setIsMobileMenuOpen(false)}
-        className={`relative block px-1 py-1 font-medium tracking-wide transition-colors ${
-          isActive ? 'text-white' : 'text-stone-300 hover:text-white'
-        }`}
-      >
-        {children}
-        <span
-          className={`absolute left-1 right-1 -bottom-0.5 h-0.5 rounded-full bg-amber-400 transition-opacity duration-200 ${
-            isActive ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
-      </Link>
-    );
-  };
-
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
@@ -49,25 +51,34 @@ export function Header({ session }: { session: Session | null }) {
     return () => subscription.unsubscribe();
   }, [supabase, router]);
 
+  // Cierra el menú móvil al cambiar de página
+  useEffect(() => { setIsMobileMenuOpen(false); }, [pathname]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsMobileMenuOpen(false);
-    router.push('/'); 
-    router.refresh(); 
+    router.push('/');
+    router.refresh();
   };
 
-  // Componente del Icono del Carrito (para reutilizarlo y no repetir código)
-  const CartIcon = () => (
+  const isActive = (href: string) => {
+    const path = href.split(/[?#]/)[0];
+    if (href.includes('#') || href.includes('?')) return false;
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
+
+  const CartLink = () => (
     <Link
       href="/carrito"
       aria-label={totalItems > 0 ? `Carrito (${totalItems} ${totalItems === 1 ? 'producto' : 'productos'})` : 'Carrito'}
-      className="relative flex items-center text-stone-300 hover:text-white transition-colors p-1"
+      className="relative w-11 h-11 flex items-center justify-center text-espresso hover:text-honey-dark transition-colors"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M5 8h14l-1.2 12H6.2z" />
+        <path d="M9 8V6a3 3 0 0 1 6 0v2" />
       </svg>
       {totalItems > 0 && (
-        <span className="absolute -top-1 -right-2 bg-amber-400 text-stone-900 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow">
+        <span className="absolute top-1 right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-honey text-espresso text-[11px] font-bold flex items-center justify-center">
           {totalItems}
         </span>
       )}
@@ -75,76 +86,88 @@ export function Header({ session }: { session: Session | null }) {
   );
 
   return (
-    <header className="bg-stone-900 border-b border-stone-700/50 w-full sticky top-0 z-50 shadow-lg">
-      <nav className="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+    <>
+      <div className="bg-espresso text-sand text-xs sm:text-sm px-4 py-2 flex flex-wrap justify-center gap-x-8 gap-y-1 text-center">
+        <span>Envío gratis en pedidos de más de {FREE_SHIPPING_OVER} €</span>
+        <span className="hidden sm:inline">Recogida gratis en nuestra tienda de San Martín de la Vega</span>
+      </div>
 
-        {/* 1. LOGO (Izquierda) */}
-        <Link href="/" className="flex flex-col leading-tight group">
-          <span className="text-xs font-light tracking-[0.3em] text-stone-400 uppercase group-hover:text-stone-300 transition-colors">
-            La Flor de
-          </span>
-          <span className="text-xl md:text-2xl font-bold font-serif text-stone-100 group-hover:text-white transition-colors italic">
-            Malaura
-          </span>
-        </Link>
-
-        {/* 2. CONTROLES MÓVIL (Derecha - Solo visible en móvil) */}
-        <div className="flex items-center gap-4 md:hidden">
-          {/* Carrito Móvil (Siempre visible en el móvil arriba) */}
-          <CartIcon />
-          
-          {/* Botón Hamburguesa */}
+      <header className="sticky top-0 z-50 bg-cream/95 backdrop-blur border-b border-line">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          {/* Móvil: menú a la izquierda */}
           <button
             type="button"
-            className="text-stone-300 focus:outline-none"
+            className="lg:hidden w-11 h-11 -ml-2 flex items-center justify-center text-espresso"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
             aria-expanded={isMobileMenuOpen}
+            aria-controls="menu-movil"
           >
             {isMobileMenuOpen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M6 18 18 6M6 6l12 12" /></svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             )}
           </button>
+
+          <Logo />
+
+          {/* Escritorio: navegación */}
+          <nav aria-label="Principal" className="hidden lg:flex flex-wrap items-center gap-x-7 gap-y-2 text-[15px] font-bold">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                className={`relative py-1 transition-colors ${isActive(item.href) ? 'text-honey-dark' : 'text-espresso hover:text-honey-dark'}`}
+              >
+                {item.label}
+                {isActive(item.href) && <span className="absolute left-0 right-0 -bottom-0.5 h-0.5 rounded-full bg-honey" />}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-4 mr-2 text-sm font-bold">
+              {session ? (
+                <>
+                  <Link href="/perfil" className="text-espresso hover:text-honey-dark">Mi cuenta</Link>
+                  <Link href="/pedidos" className="text-espresso hover:text-honey-dark">Mis pedidos</Link>
+                  <button type="button" onClick={handleLogout} className="text-cocoa hover:text-espresso">Salir</button>
+                </>
+              ) : (
+                <Link href="/login" className="text-espresso hover:text-honey-dark">Entrar</Link>
+              )}
+            </div>
+            <CartLink />
+          </div>
         </div>
 
-        {/* 3. MENÚ PRINCIPAL (Links + Carrito Desktop) */}
-        {/* En móvil: Ocupa 100% ancho y se oculta/muestra. En PC: Se pone al lado del logo */}
-        <div className={`${
-            isMobileMenuOpen ? 'block' : 'hidden'
-          } w-full md:block md:w-auto mt-4 md:mt-0`}
-        >
-          <ul className="flex flex-col md:flex-row md:items-center gap-2 md:gap-7 text-sm border-t md:border-none border-stone-700 pt-4 md:pt-0">
-            <li><NavLink href="/">Inicio</NavLink></li>
-            <li><NavLink href="/productos">Productos</NavLink></li>
-
-            {session ? (
-              <>
-                <li><NavLink href="/perfil">Mi Perfil</NavLink></li>
-                <li><NavLink href="/pedidos">Mis Pedidos</NavLink></li>
-                <li>
-                  <button onClick={handleLogout} className="text-left px-1 py-1 text-stone-400 hover:text-white transition-colors font-medium tracking-wide w-full md:w-auto">
-                    Salir
-                  </button>
+        {/* Móvil: menú desplegable */}
+        {isMobileMenuOpen && (
+          <nav id="menu-movil" aria-label="Menú" className="lg:hidden border-t border-line bg-cream">
+            <ul className="container mx-auto px-4 py-3 flex flex-col text-base font-bold">
+              {navItems.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block py-3 text-espresso">
+                    {item.label}
+                  </Link>
                 </li>
-              </>
-            ) : (
-              <li><NavLink href="/login">Entrar</NavLink></li>
-            )}
-
-            {/* Carrito de ESCRITORIO (Oculto en móvil para no duplicarlo, visible en MD) */}
-            <li className="hidden md:block">
-              <CartIcon />
-            </li>
-          </ul>
-        </div>
-
-      </nav>
-    </header>
+              ))}
+              <li className="border-t border-line mt-2 pt-2" />
+              {session ? (
+                <>
+                  <li><Link href="/perfil" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 text-espresso">Mi cuenta</Link></li>
+                  <li><Link href="/pedidos" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 text-espresso">Mis pedidos</Link></li>
+                  <li><button type="button" onClick={handleLogout} className="block w-full text-left py-3 text-cocoa">Salir</button></li>
+                </>
+              ) : (
+                <li><Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 text-espresso">Entrar</Link></li>
+              )}
+            </ul>
+          </nav>
+        )}
+      </header>
+    </>
   );
 }

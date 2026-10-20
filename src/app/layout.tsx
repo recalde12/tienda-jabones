@@ -4,9 +4,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Lato, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
 
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
@@ -27,7 +24,7 @@ const gtmEnabled = process.env.NODE_ENV === "production";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "La Flor de Malaura | Jabones Artesanales Naturales en Madrid",
+    default: "Jabones artesanales en San Martín de la Vega (Madrid) | La Flor de Malaura",
     template: "%s | La Flor de Malaura",
   },
   description: siteConfig.description,

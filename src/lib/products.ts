@@ -21,6 +21,27 @@ export const CATEGORY_LABELS: Record<string, string> = {
   ProductosEspeciales: "Productos especiales",
 };
 
+/** Valor de ?categoria= en la URL del catálogo → categoría de la BD. */
+const CATEGORY_ALIASES: Record<string, string> = {
+  panales: "panales",
+  cestas: "cestas",
+  packs: "cestas",
+  especiales: "ProductosEspeciales",
+  ProductosEspeciales: "ProductosEspeciales",
+  al_corte: "al_corte",
+  "al-corte": "al_corte",
+};
+
+export function categoryFromParam(param?: string | null): string {
+  return CATEGORY_ALIASES[param ?? ""] ?? "panales";
+}
+
+/** Categoría de la BD → valor para ?categoria= (panales es la de por defecto: sin parámetro). */
+export function categoryToParam(category: string): string | null {
+  if (category === "panales") return null;
+  return category === "ProductosEspeciales" ? "especiales" : category;
+}
+
 /** Categorías que son jabones (para mostrar sus características: natural, sin parabenos...). */
 export const SOAP_CATEGORIES = ["panales", "al_corte"];
 
