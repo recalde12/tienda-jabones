@@ -7,14 +7,14 @@
 import { useState } from "react";
 import { whatsappUrl } from "@/lib/editorial";
 
-const EVENTS = ["Boda", "Comunión", "Bautizo", "Empresa", "Otro"];
+const EVENTS = ["Bautizo", "Comunión", "Boda", "Cumpleaños", "Empresa", "Otro"];
 
 const field =
   "min-h-[46px] w-full rounded-xl border border-edge bg-white px-3.5 text-base text-espresso focus:outline-none focus:ring-2 focus:ring-honey-dark";
 const label = "flex flex-col gap-1.5 text-sm font-bold";
 
 export function BodasForm() {
-  const [form, setForm] = useState({ nombre: "", evento: "Boda", fecha: "", invitados: "", aroma: "", mensaje: "" });
+  const [form, setForm] = useState({ nombre: "", evento: "Bautizo", fecha: "", invitados: "", aroma: "", mensaje: "" });
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm({ ...form, [key]: e.target.value });
 
@@ -22,7 +22,9 @@ export function BodasForm() {
     e.preventDefault();
     const fecha = form.fecha ? new Date(`${form.fecha}T12:00:00`).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : "";
     const lines = [
-      `¡Hola! Me gustaría pedir presupuesto para detalles de ${form.evento.toLowerCase()}.`,
+      form.evento === "Otro"
+        ? "¡Hola! Me gustaría pedir presupuesto para detalles para un evento."
+        : `¡Hola! Me gustaría pedir presupuesto para detalles de ${form.evento.toLowerCase()}.`,
       form.nombre && `Nombre: ${form.nombre}`,
       fecha && `Fecha del evento: ${fecha}`,
       form.invitados && `Número de invitados: ${form.invitados}`,

@@ -48,14 +48,12 @@ export function LocalBusinessJsonLd() {
           latitude: business.geo.lat,
           longitude: business.geo.lng,
         },
-        openingHoursSpecification: [
-          {
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            opens: "10:00",
-            closes: "18:00",
-          },
-        ],
+        openingHoursSpecification: business.openingHours.map((h) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: h.days,
+          opens: h.opens,
+          closes: h.closes,
+        })),
         sameAs: [social.instagram, social.facebook],
       },
       {

@@ -2,12 +2,13 @@
 // Pie de página global. Server Component (sin JS en cliente).
 
 import Link from "next/link";
-import { siteConfig } from "@/lib/site";
+import { siteConfig, openingHoursLines } from "@/lib/site";
 
 const navLinks = [
   { href: "/", label: "Inicio" },
   { href: "/productos", label: "Jabones" },
-  { href: "/bodas", label: "Bodas y comuniones" },
+  { href: "/bodas", label: "Bodas y eventos" },
+  { href: "/devoluciones", label: "Envíos y devoluciones" },
   { href: "/perfil", label: "Mi perfil" },
   { href: "/pedidos", label: "Mis pedidos" },
 ];
@@ -119,9 +120,11 @@ export function Footer() {
               <br />
               {siteConfig.business.address.region}
             </address>
-            <p className="mt-4 text-xs text-latte">
-              Horario: Lun–Vie · 10:00–18:00
-            </p>
+            <ul className="mt-4 text-xs text-latte leading-relaxed" aria-label="Horario">
+              {openingHoursLines().map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

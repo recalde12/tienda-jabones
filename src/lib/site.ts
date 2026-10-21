@@ -35,8 +35,13 @@ export const siteConfig = {
       country: "ES",
     },
     geo: { lat: 40.2074705, lng: -3.5756814 },
-    // Horario en formato schema.org (L-V 10:00-18:00)
-    openingHours: "Mo-Fr 10:00-18:00",
+    // Horario de la tienda: el MISMO que la ficha de Google Business. Fuente única para la web
+    // (pie, home) y los datos estructurados. Si cambia, cámbialo aquí y en la ficha de Google.
+    openingHours: [
+      { label: "Lunes a viernes", days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], opens: "10:00", closes: "20:30" },
+      { label: "Sábados", days: ["Saturday"], opens: "09:00", closes: "14:00" },
+    ],
+    closedLabel: "Domingos cerrado",
   },
 
   social: {
@@ -47,3 +52,15 @@ export const siteConfig = {
 };
 
 export type SiteConfig = typeof siteConfig;
+
+/** "09:00" -> "9:00" (como se escribe en español). */
+const shortTime = (t: string) => t.replace(/^0/, "");
+
+/** Líneas de horario para mostrar: ["Lunes a viernes: 10:00–20:30", "Sábados: 9:00–14:00", "Domingos cerrado"]. */
+export function openingHoursLines(): string[] {
+  const { openingHours, closedLabel } = siteConfig.business;
+  return [
+    ...openingHours.map((h) => `${h.label}: ${shortTime(h.opens)}–${shortTime(h.closes)}`),
+    closedLabel,
+  ];
+}

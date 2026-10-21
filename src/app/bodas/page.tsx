@@ -12,13 +12,13 @@ import { formatPrice, productPath, type Product } from "@/lib/products";
 import { WHATSAPP_DISPLAY, whatsappUrl } from "@/lib/editorial";
 
 export const metadata: Metadata = {
-  title: "Jabones personalizados para bodas, comuniones y bautizos",
+  title: "Jabones personalizados para bautizos, comuniones, bodas y eventos",
   description:
-    "Detalles de jabón artesanal para tus invitados: bodas, comuniones, bautizos y empresas. Elegimos contigo aroma, color y presentación. Hechos a mano en San Martín de la Vega (Madrid).",
+    "Detalles de jabón artesanal para tus invitados en bautizos, comuniones, bodas, empresas y cualquier celebración. Elegimos contigo aroma, color, presentación y etiqueta personalizada. Hechos a mano en San Martín de la Vega (Madrid).",
   alternates: { canonical: "/bodas" },
   openGraph: {
-    title: "Jabones personalizados para bodas y comuniones | La Flor de Malaura",
-    description: "Detalles de jabón artesanal para tus invitados. Elegimos contigo aroma, color y presentación.",
+    title: "Jabones personalizados para eventos | La Flor de Malaura",
+    description: "Detalles de jabón artesanal para tus invitados, con etiqueta personalizada. Elegimos contigo aroma, color y presentación.",
     url: "/bodas",
   },
 };
@@ -28,11 +28,19 @@ const h2 = "font-serif text-3xl sm:text-[42px] font-semibold leading-tight";
 
 const steps = [
   { title: "Cuéntanos tu evento", text: "La fecha, el número de invitados y el estilo de la celebración." },
-  { title: "Lo diseñamos juntas", text: "Elegimos contigo el aroma, el color y la presentación perfecta." },
+  { title: "Lo diseñamos juntas", text: "Elegimos contigo el aroma, el color, la presentación y la etiqueta personalizada." },
   { title: "Listos para regalar", text: "Recógelos gratis en nuestra tienda de San Martín de la Vega o te los enviamos." },
 ];
 
 const faqs: FaqItem[] = [
+  {
+    q: "¿Para qué eventos hacéis detalles?",
+    a: "Para cualquier celebración en la que contéis con nosotras: bautizos, comuniones, bodas, cumpleaños, empresas…",
+  },
+  {
+    q: "¿Hacéis etiquetas personalizadas?",
+    a: "Sí. Personalizamos la etiqueta de cada detalle para tu celebración.",
+  },
   {
     q: "¿Puedo elegir el aroma y los colores?",
     a: "Sí. Diseñamos cada detalle según tu evento y elegimos juntas el aroma, el color y la presentación.",
@@ -71,16 +79,16 @@ export default async function BodasPage() {
 
   return (
     <div>
-      <BreadcrumbJsonLd items={[{ name: "Inicio", path: "/" }, { name: "Bodas y comuniones", path: "/bodas" }]} />
+      <BreadcrumbJsonLd items={[{ name: "Inicio", path: "/" }, { name: "Bodas y eventos", path: "/bodas" }]} />
 
       {/* ===== HERO ===== */}
       <section className="container mx-auto px-4 pt-10 pb-16 sm:pt-14 sm:pb-20 flex flex-wrap items-center gap-10 lg:gap-12">
         <div className="flex-1 basis-[460px] min-w-0 flex flex-col gap-5">
-          <span className={eyebrow}>Bodas · Comuniones · Bautizos · Empresas</span>
+          <span className={eyebrow}>Bautizos · Comuniones · Bodas · Empresas</span>
           <h1 className="font-serif font-semibold text-[38px] sm:text-[56px] leading-[1.06]">Jabones personalizados para tus invitados</h1>
           <p className="text-lg sm:text-[19px] leading-relaxed text-cocoa max-w-[560px]">
-            Creamos jabones personalizados para momentos únicos. Diseñamos cada detalle según tu evento, eligiendo juntos el
-            aroma, el color y la presentación perfecta. Un regalo artesanal que deja huella.
+            Creamos jabones personalizados para cualquier celebración. Diseñamos cada detalle según tu evento, eligiendo juntos
+            el aroma, el color, la presentación y la etiqueta personalizada. Un regalo artesanal que deja huella.
           </p>
           <div className="flex flex-wrap gap-3">
             <a href="#presupuesto" className="inline-flex items-center justify-center min-h-[52px] px-8 rounded-full bg-espresso text-cream font-bold hover:bg-black transition-colors">

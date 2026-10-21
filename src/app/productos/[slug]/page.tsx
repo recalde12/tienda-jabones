@@ -191,6 +191,10 @@ export default async function ProductPage({ params }: Props) {
                 <p>
                   <strong>Recogida en tienda:</strong> gratis en San Martín de la Vega (Madrid).
                 </p>
+                <p>
+                  <strong>Devoluciones:</strong> tienes 14 días.{" "}
+                  <Link href="/devoluciones" className="font-bold text-honey-dark underline underline-offset-4">Ver política</Link>
+                </p>
               </div>
 
               {packDuo && (

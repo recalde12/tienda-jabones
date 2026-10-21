@@ -17,7 +17,7 @@ import {
   WHATSAPP_DISPLAY,
   whatsappUrl,
 } from "@/lib/editorial";
-import { siteConfig } from "@/lib/site";
+import { openingHoursLines, siteConfig } from "@/lib/site";
 
 const eyebrow = "text-[13px] font-bold tracking-[0.18em] uppercase text-honey-dark";
 const h2 = "font-serif text-3xl sm:text-[42px] font-semibold leading-tight";
@@ -76,8 +76,12 @@ export default async function HomePage() {
       a: "El Jabón Artesanal Malaura, con leche de cabra, está creado para las pieles más sensibles. También el Caricia de Seda, con avena coloidal y miel pura.",
     },
     {
-      q: "¿Hacéis jabones personalizados para bodas o comuniones?",
-      a: "Sí. Para bodas, comuniones, bautizos y empresas elegimos contigo el aroma, el color y la presentación. Pide presupuesto en nuestra página de bodas y comuniones.",
+      q: "¿Hacéis jabones personalizados para eventos?",
+      a: "Sí, para cualquier celebración: bautizos, comuniones, bodas, cumpleaños o empresas. Elegimos contigo el aroma, el color y la presentación, y hacemos etiquetas personalizadas. Pide presupuesto en nuestra página de bodas y eventos.",
+    },
+    {
+      q: "¿Cuál es el horario de la tienda?",
+      a: `${openingHoursLines().join(". ")}. Estamos en ${siteConfig.business.address.street}, ${siteConfig.business.address.locality} (Madrid).`,
     },
   ];
 
@@ -96,7 +100,7 @@ export default async function HomePage() {
           </p>
           <div className="flex flex-wrap gap-3 pt-1">
             <Link href="#encuentra" className={btnDark}>Encuentra tu jabón</Link>
-            <Link href="/bodas" className={btnOutline}>Detalles para bodas</Link>
+            <Link href="/bodas" className={btnOutline}>Detalles para eventos</Link>
           </div>
           <ul className="flex flex-wrap gap-x-7 gap-y-2 pt-2 text-sm text-cocoa">
             <li>Hecho a mano en pequeñas tandas</li>
@@ -216,11 +220,11 @@ export default async function HomePage() {
       <section className="bg-espresso text-cream py-16 sm:py-20 px-4">
         <div className="container mx-auto flex flex-wrap items-center gap-10 lg:gap-14">
           <div className="flex-1 basis-[460px] min-w-0 flex flex-col gap-5">
-            <span className="text-[13px] font-bold tracking-[0.18em] uppercase text-honey">Bodas, comuniones y bautizos</span>
+            <span className="text-[13px] font-bold tracking-[0.18em] uppercase text-honey">Bautizos, comuniones, bodas y más</span>
             <h2 className={h2}>Detalles que huelen a recuerdo</h2>
             <p className="text-[17px] leading-[1.7] text-latte">
-              Creamos jabones personalizados para momentos únicos. Diseñamos cada detalle según tu evento, eligiendo juntos el
-              aroma, el color y la presentación perfecta.
+              Creamos jabones personalizados para cualquier celebración. Diseñamos cada detalle según tu evento, eligiendo juntos
+              el aroma, el color, la presentación y la etiqueta personalizada.
             </p>
             {piruleta && (
               <p className="text-[15px] text-latte">
@@ -282,6 +286,7 @@ export default async function HomePage() {
             tu pedido aquí sin gastos de envío.
           </p>
           <ul className="flex flex-col gap-2 text-base">
+            <li><strong>Horario:</strong> {openingHoursLines().join(" · ")}</li>
             <li><strong>WhatsApp:</strong> <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" className="text-honey-dark underline underline-offset-4">{WHATSAPP_DISPLAY}</a></li>
             <li><strong>Email:</strong> <a href={`mailto:${siteConfig.business.email}`} className="text-honey-dark underline underline-offset-4 break-all">{siteConfig.business.email}</a></li>
           </ul>
