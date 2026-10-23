@@ -13,12 +13,13 @@ interface ProductTabsProps {
   ProductosEspeciales: Product[];
 }
 
-// Categorías (el id coincide con la columna `category` de la BD)
+// Categorías (el id coincide con la columna `category` de la BD).
+// `short` es el nombre en móvil, donde las pestañas van en una cuadrícula de 2 columnas.
 export const CATALOG_TABS = [
-  { id: 'panales', label: 'Panales' },
-  { id: 'al_corte', label: 'Al corte' },
-  { id: 'cestas', label: 'Cestas y packs' },
-  { id: 'ProductosEspeciales', label: 'Productos especiales' },
+  { id: 'panales', label: 'Panales', short: 'Panales' },
+  { id: 'al_corte', label: 'Al corte', short: 'Al corte' },
+  { id: 'cestas', label: 'Cestas y packs', short: 'Cestas y packs' },
+  { id: 'ProductosEspeciales', label: 'Productos especiales', short: 'Especiales' },
 ];
 
 function ProductGrid({ products }: { products: Product[] }) {
@@ -70,7 +71,8 @@ export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: P
 
   return (
     <div className="w-full">
-      <div role="tablist" aria-label="Categorías" className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 mb-10 sm:justify-center -mx-4 px-4">
+      {/* Móvil: cuadrícula 2×2 (todas las categorías a la vista, sin deslizar). Desde sm: una fila centrada. */}
+      <div role="tablist" aria-label="Categorías" className="grid grid-cols-2 gap-2 mb-10 sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
         {CATALOG_TABS.map((cat) => {
           const active = activeTab === cat.id;
           return (
@@ -81,11 +83,12 @@ export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: P
               aria-selected={active}
               aria-controls="catalogo-panel"
               onClick={() => selectTab(cat.id)}
-              className={`flex-none min-h-[48px] px-6 rounded-full border-2 text-[15px] font-bold transition-colors ${
+              className={`min-h-[48px] px-3 sm:px-6 rounded-full border-2 text-[15px] font-bold transition-colors inline-flex items-center justify-center ${
                 active ? 'bg-espresso border-espresso text-cream' : 'bg-cream border-edge text-espresso hover:border-espresso'
               }`}
             >
-              {cat.label}
+              <span className="sm:hidden">{cat.short}</span>
+              <span className="hidden sm:inline">{cat.label}</span>
               <span className={`ml-2 text-xs ${active ? 'text-latte' : 'text-cocoa'}`}>{byTab[cat.id].length}</span>
             </button>
           );
