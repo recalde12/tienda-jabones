@@ -10,7 +10,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { InfoTabs, type InfoTab } from "@/components/InfoTabs";
 import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/JsonLd";
 import { getCatalog, indexBySlug } from "@/lib/catalog";
-import { PRODUCT_NOTES } from "@/lib/editorial";
+import { PRODUCT_NOTES, variantsFor } from "@/lib/editorial";
 import {
   CATEGORY_LABELS,
   SOAP_CATEGORIES,
@@ -69,11 +69,15 @@ export default async function ProductPage({ params }: Props) {
 
   const slug = slugify(product.name);
   const notes = PRODUCT_NOTES[slug];
+  const bySlug = indexBySlug(products);
   const description = cleanDescription(product.description);
   const weight = formatWeight(product);
   const categoryLabel = product.category ? CATEGORY_LABELS[product.category] : undefined;
   const isSoap = !!product.category && SOAP_CATEGORIES.includes(product.category);
-  const packDuo = isSoap ? indexBySlug(products).get("pack-duo") : undefined;
+  const packDuo = isSoap ? bySlug.get("pack-duo") : undefined;
+  // Otras versiones del mismo producto (p. ej. color), solo las que existen en la BD
+  const variantGroup = variantsFor(slug);
+  const variantOptions = variantGroup?.options.filter((o) => bySlug.has(o.slug)) ?? [];
   const related = products
     .filter((p) => p.id !== product.id && p.category === product.category)
     .slice(0, 4);
@@ -83,15 +87,12 @@ export default async function ProductPage({ params }: Props) {
     ...(isSoap ? ["Sin parabenos ni sulfatos", "Cruelty-free"] : []),
   ];
 
+  const usage = isSoap
+    ? "Humedece el jabón y la piel, haz espuma con las manos y aclara.\nDéjalo secar en una jabonera con drenaje: así dura mucho más."
+    : notes?.usage;
+
   const tabs: InfoTab[] = [
-    ...(isSoap
-      ? [{
-          id: "uso",
-          label: "Cómo usarlo",
-          content:
-            "Humedece el jabón y la piel, haz espuma con las manos y aclara.\nDéjalo secar en una jabonera con drenaje: así dura mucho más.",
-        }]
-      : []),
+    ...(usage ? [{ id: "uso", label: "Cómo usarlo", content: usage }] : []),
     {
       id: "envio",
       label: "Envío y recogida",
@@ -180,6 +181,30 @@ export default async function ProductPage({ params }: Props) {
                     <li key={chip} className="px-4 py-2 rounded-full border border-edge text-sm font-bold">{chip}</li>
                   ))}
                 </ul>
+              )}
+
+              {variantGroup && variantOptions.length > 1 && (
+                <nav aria-label={variantGroup.label}>
+                  <p className="text-xs font-bold text-cocoa mb-2 uppercase">{variantGroup.label}:</p>
+                  <ul className="flex flex-wrap gap-2">
+                    {variantOptions.map((option) => {
+                      const current = option.slug === slug;
+                      return (
+                        <li key={option.slug}>
+                          <Link
+                            href={`/productos/${option.slug}`}
+                            aria-current={current ? "page" : undefined}
+                            className={`inline-flex items-center min-h-[44px] px-5 rounded-full border-2 text-[15px] font-bold transition-colors ${
+                              current ? "bg-espresso text-cream border-espresso" : "border-edge text-espresso hover:border-espresso"
+                            }`}
+                          >
+                            {option.name}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </nav>
               )}
 
               <AddToCart product={product} withQuantity className="max-w-md" />

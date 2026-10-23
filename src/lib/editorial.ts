@@ -12,6 +12,15 @@ export type ProductNotes = {
   why: string;
   ingredients: Ingredient[];
   idealFor: string[];
+  /** Pestaña "Cómo usarlo" para productos que no son jabón (los jabones ya tienen la suya). */
+  usage?: string;
+};
+
+const BALSAMO: ProductNotes = {
+  why: "Bálsamo labial hecho a mano que cuida tus labios del frío y la sequedad.",
+  ingredients: [],
+  idealFor: ["Labios secos o agrietados"],
+  usage: "Aplica una pequeña cantidad con la yema del dedo sobre los labios.\nRepite siempre que lo necesites, sobre todo con frío o viento.",
 };
 
 export const PRODUCT_NOTES: Record<string, ProductNotes> = {
@@ -93,7 +102,28 @@ export const PRODUCT_NOTES: Record<string, ProductNotes> = {
     ingredients: [{ name: "Jengibre", benefit: "Antioxidante" }],
     idealFor: ["Antioxidante"],
   },
+  "balsamo-malaura-rojo": BALSAMO,
+  "balsamo-malaura-neutro": BALSAMO,
 };
+
+/**
+ * Productos que son el mismo artículo en varias versiones. Cada versión es un producto
+ * distinto en la BD (así el pedido y el email dicen cuál se ha comprado); en la ficha se
+ * muestran como un selector que enlaza a la otra versión.
+ */
+export const PRODUCT_VARIANTS: { label: string; options: { name: string; slug: string }[] }[] = [
+  {
+    label: "Color",
+    options: [
+      { name: "Rojo", slug: "balsamo-malaura-rojo" },
+      { name: "Neutro", slug: "balsamo-malaura-neutro" },
+    ],
+  },
+];
+
+export function variantsFor(slug: string) {
+  return PRODUCT_VARIANTS.find((group) => group.options.some((o) => o.slug === slug));
+}
 
 /** Opciones del buscador "¿Qué necesita tu piel hoy?" y los jabones que recomienda cada una. */
 export const SKIN_NEEDS: { id: string; label: string; slugs: string[] }[] = [

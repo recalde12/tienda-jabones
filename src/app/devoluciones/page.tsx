@@ -129,12 +129,16 @@ export default function DevolucionesPage() {
           <li className={li}>Email: <a href={`mailto:${business.email}`} className="text-honey-dark underline underline-offset-4">{business.email}</a></li>
           <li className={li}>WhatsApp: {WHATSAPP_DISPLAY}</li>
           <li className={li}>Tienda: {address}</li>
+          <li className={li}>
+            Titular: {siteConfig.legal.owner}, NIF {siteConfig.legal.nif} (ver{" "}
+            <Link href="/aviso-legal" className="text-honey-dark underline underline-offset-4">aviso legal</Link>)
+          </li>
         </ul>
 
         <h2 className={h2}>Modelo de formulario de desistimiento</h2>
         <p className={p}>Solo tienes que rellenarlo y enviárnoslo si quieres desistir de tu compra:</p>
         <div className="rounded-[20px] bg-sand p-6 text-[16px] leading-[1.8] text-espresso whitespace-pre-line">
-          {`A la atención de La Flor de Malaura, ${address}, ${business.email}:
+          {`A la atención de ${siteConfig.legal.owner} (La Flor de Malaura), ${address}, ${business.email}:
 
 Por la presente le comunico que desisto de mi contrato de venta de los siguientes productos:
 

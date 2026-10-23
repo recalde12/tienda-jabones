@@ -133,6 +133,7 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="container mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-latte">
           <p>© {year} La Flor de Malaura. Todos los derechos reservados.</p>
+          <Link href="/aviso-legal" className="inline-block py-2 hover:text-white transition-colors">Aviso legal</Link>
           <p>Jabones artesanales hechos a mano en Madrid 🌿</p>
         </div>
       </div>

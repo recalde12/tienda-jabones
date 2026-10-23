@@ -44,6 +44,12 @@ export const siteConfig = {
     closedLabel: "Domingos cerrado",
   },
 
+  // Titular de la web: datos obligatorios del aviso legal (LSSI-CE, art. 10)
+  legal: {
+    owner: "María Fernanda Recalde García",
+    nif: "53135514V",
+  },
+
   social: {
     instagram: "https://instagram.com/flordemalaura",
     facebook:
