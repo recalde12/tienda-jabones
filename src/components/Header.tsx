@@ -2,6 +2,7 @@
 
 "use client";
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -20,11 +21,9 @@ const navItems = [
 
 function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-3 text-espresso">
-      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" className="flex-none">
-        <polygon points="8.5,2 25.5,2 34,17 25.5,32 8.5,32 0,17" fill="#E9B96A" />
-        <polygon points="12,9 22,9 27,17 22,25 12,25 7,17" fill="none" stroke="#2A201A" strokeWidth="1.6" />
-      </svg>
+    <Link href="/" className="flex items-center gap-2.5 text-espresso">
+      {/* Flor de ginkgo de la marca (dibujo vectorizado, color honey-dark) */}
+      <Image src="/brand/ginkgo.svg" alt="" width={46} height={49} priority unoptimized className="flex-none w-[46px] h-[49px]" />
       <span className="flex flex-col leading-none">
         <span className="text-[11px] tracking-[0.3em] uppercase text-cocoa">La Flor de</span>{' '}
         <span className="font-serif italic font-bold text-[26px]">Malaura</span>
