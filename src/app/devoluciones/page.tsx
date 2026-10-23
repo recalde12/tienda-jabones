@@ -79,12 +79,13 @@ export default function DevolucionesPage() {
             <strong className="text-espresso">traerlos a nuestra tienda sin ningún coste</strong> o enviarlos a {address}.
           </li>
           <li className={li}>
-            Los productos deben estar sin usar y, a ser posible, en su embalaje original.
+            Los productos deben estar sin usar y con su precinto intacto (todos nuestros productos se entregan precintados)
+            y, a ser posible, en su embalaje original.
           </li>
         </ol>
         <p className={p}>
-          Si eliges devolverlos por mensajería, el coste del envío de vuelta corre de tu cuenta, salvo que el producto llegara
-          dañado o no fuera el que pediste (ver punto 4).
+          Si eliges devolverlos por mensajería, <strong className="text-espresso">el coste del envío de vuelta corre de tu
+          cuenta</strong>, salvo que el producto llegara dañado o no fuera el que pediste (ver punto 4).
         </p>
 
         <h2 className={h2}>3. Reembolso</h2>
@@ -116,8 +117,9 @@ export default function DevolucionesPage() {
             bautizos, comuniones, bodas y otros eventos con aroma, color o etiqueta personalizados.
           </li>
           <li className={li}>
-            <strong className="text-espresso">Productos precintados que, por higiene o protección de la salud,</strong> no pueden
-            devolverse si se han desprecintado después de la entrega.
+            <strong className="text-espresso">Productos desprecintados.</strong> Todos nuestros jabones y cosméticos se entregan
+            precintados y, por razones de higiene y protección de la salud, no pueden devolverse si se han desprecintado
+            después de la entrega.
           </li>
         </ul>
         <p className={p}>
