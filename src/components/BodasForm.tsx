@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { whatsappUrl } from "@/lib/editorial";
 
-const EVENTS = ["Bautizo", "Comunión", "Boda", "Cumpleaños", "Empresa", "Otro"];
+const EVENTS = ["Bautizo", "Comunión", "Boda", "Cumpleaños", "Empresa", "Evento deportivo", "Otro"];
 
 const field =
   "min-h-[46px] w-full rounded-xl border border-edge bg-white px-3.5 text-base text-espresso focus:outline-none focus:ring-2 focus:ring-honey-dark";

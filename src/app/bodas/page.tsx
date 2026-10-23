@@ -32,10 +32,46 @@ const steps = [
   { title: "Listos para regalar", text: "Recógelos gratis en nuestra tienda de San Martín de la Vega o te los enviamos." },
 ];
 
+// Fotos reales de detalles que ya hemos hecho (public/eventos). Tamaños = los de cada archivo.
+const gallery = [
+  {
+    src: "/eventos/boda-ramilletes-margaritas.jpg",
+    width: 813,
+    height: 1100,
+    event: "Boda",
+    alt: "Ramilletes de margaritas de jabón de colores en cucuruchos de arpillera con paniculata, jabones con rama de olivo y etiquetas personalizadas para una boda",
+    text: "Ramilletes de margaritas de jabón en cucurucho de arpillera con paniculata, jabones con rama de olivo y ositos. Etiqueta con los nombres de los novios y la fecha.",
+  },
+  {
+    src: "/eventos/bautizo-margaritas-blancas.jpg",
+    width: 1100,
+    height: 1003,
+    event: "Bautizo",
+    alt: "Margaritas blancas de jabón en cucuruchos de arpillera con paniculata y etiqueta personalizada «Mi bautizo»",
+    text: "Margaritas blancas de jabón en cucurucho de arpillera con paniculata y etiqueta «Mi bautizo» con el nombre y la fecha.",
+  },
+  {
+    src: "/eventos/carrera-atletismo-flores.jpg",
+    width: 1100,
+    height: 825,
+    event: "Carrera de atletismo",
+    alt: "Flores de jabón de colores sobre tarjetas personalizadas «¡Enhorabuena! Tus pies corren, tu esfuerzo florece» para los corredores",
+    text: "Flores de jabón sobre tarjeta personalizada para los corredores: «¡Enhorabuena! Tus pies corren, tu esfuerzo florece».",
+  },
+  {
+    src: "/eventos/boda-osito-etiqueta.jpg",
+    width: 822,
+    height: 1100,
+    event: "Boda",
+    alt: "Osito de jabón envuelto en celofán, atado con cordel y con etiqueta personalizada «Gracias por acompañarnos»",
+    text: "Osito de jabón envuelto en celofán, atado con cordel y con su etiqueta «Gracias por acompañarnos».",
+  },
+];
+
 const faqs: FaqItem[] = [
   {
     q: "¿Para qué eventos hacéis detalles?",
-    a: "Para cualquier celebración en la que contéis con nosotras: bautizos, comuniones, bodas, cumpleaños, empresas…",
+    a: "Para cualquier celebración en la que contéis con nosotras: bautizos, comuniones, bodas, cumpleaños, empresas o eventos deportivos como carreras…",
   },
   {
     q: "¿Hacéis etiquetas personalizadas?",
@@ -115,6 +151,35 @@ export default async function BodasPage() {
             <Image src={piruleta.image_url} alt={`${piruleta.name} en tonos botánicos como detalle para invitados`} fill priority sizes="(max-width: 900px) 100vw, 50vw" className="object-cover" />
           </div>
         )}
+      </section>
+
+      {/* ===== DETALLES QUE YA HEMOS HECHO ===== */}
+      <section aria-labelledby="hechos" className="container mx-auto px-4 pb-16 sm:pb-20 flex flex-col gap-8">
+        <div className="flex flex-col gap-3 max-w-[640px]">
+          <span className={eyebrow}>Hechos por nosotras</span>
+          <h2 id="hechos" className={h2}>Detalles que ya hemos creado</h2>
+          <p className="text-[17px] leading-relaxed text-cocoa">
+            Cada evento es distinto: adaptamos los jabones, los colores, el envoltorio y la etiqueta a cada celebración.
+          </p>
+        </div>
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
+          {gallery.map((photo) => (
+            <figure key={photo.src} className="break-inside-avoid mb-6 flex flex-col gap-3">
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                width={photo.width}
+                height={photo.height}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="w-full h-auto rounded-[22px] bg-sand"
+              />
+              <figcaption className="flex flex-col gap-1.5">
+                <span className="self-start px-3 py-1 rounded-full bg-sand text-[13px] font-bold text-espresso">{photo.event}</span>
+                <span className="text-[15px] leading-relaxed text-cocoa">{photo.text}</span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
       </section>
 
       {/* ===== PASOS ===== */}

@@ -77,7 +77,7 @@ export default async function HomePage() {
     },
     {
       q: "¿Hacéis jabones personalizados para eventos?",
-      a: "Sí, para cualquier celebración: bautizos, comuniones, bodas, cumpleaños o empresas. Elegimos contigo el aroma, el color y la presentación, y hacemos etiquetas personalizadas. Pide presupuesto en nuestra página de bodas y eventos.",
+      a: "Sí, para cualquier celebración: bautizos, comuniones, bodas, cumpleaños, empresas o eventos deportivos. Elegimos contigo el aroma, el color y la presentación, y hacemos etiquetas personalizadas. Pide presupuesto en nuestra página de bodas y eventos.",
     },
     {
       q: "¿Cuál es el horario de la tienda?",
