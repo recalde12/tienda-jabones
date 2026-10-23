@@ -73,7 +73,8 @@ export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: P
     <div className="w-full">
       {/* Móvil: cuadrícula 2×2 (todas las categorías a la vista, sin deslizar). Desde sm: una fila centrada. */}
       <div role="tablist" aria-label="Categorías" className="grid grid-cols-2 gap-2 mb-10 sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
-        {CATALOG_TABS.map((cat) => {
+        {/* Las categorías vacías no se muestran (salvo que alguien llegue a ella por enlace) */}
+        {CATALOG_TABS.filter((cat) => byTab[cat.id].length > 0 || cat.id === activeTab).map((cat) => {
           const active = activeTab === cat.id;
           return (
             <button
@@ -83,7 +84,7 @@ export function ProductTabs({ panales, alCorte, cestas, ProductosEspeciales }: P
               aria-selected={active}
               aria-controls="catalogo-panel"
               onClick={() => selectTab(cat.id)}
-              className={`min-h-[48px] px-3 sm:px-6 rounded-full border-2 text-[15px] font-bold transition-colors inline-flex items-center justify-center ${
+              className={`min-h-[48px] px-3 sm:px-6 rounded-full border-2 text-[15px] font-bold transition-colors inline-flex items-center justify-center [&:last-child:nth-child(odd)]:col-span-2 ${
                 active ? 'bg-espresso border-espresso text-cream' : 'bg-cream border-edge text-espresso hover:border-espresso'
               }`}
             >

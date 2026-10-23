@@ -88,7 +88,8 @@ export function CookieBanner() {
           <p className="font-bold text-espresso mb-1">Usamos cookies</p>
           Con tu permiso usamos cookies de análisis para saber cómo se usa la web y mejorarla. Las necesarias para iniciar
           sesión y pagar de forma segura están siempre activas.{" "}
-          <Link href="/cookies" className="font-bold text-honey-dark underline underline-offset-4">Más información</Link>
+          {/* Texto descriptivo: Google penaliza enlaces genéricos como «Más información» */}
+          <Link href="/cookies" className="font-bold text-honey-dark underline underline-offset-4">Ver la política de cookies</Link>
         </div>
         <div className="flex gap-3 shrink-0 sm:flex-col md:flex-row">
           <button type="button" onClick={() => setConsent(false)} className={button}>

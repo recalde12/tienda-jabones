@@ -12,7 +12,7 @@ import { WHATSAPP_DISPLAY, whatsappUrl } from "@/lib/editorial";
 export const metadata: Metadata = {
   title: "Envíos, cambios y devoluciones",
   description:
-    "Política de envíos, cambios y devoluciones de La Flor de Malaura: 14 días para devolver tu pedido, recogida gratis en tienda y envío gratis en pedidos de más de 40 €.",
+    "Envíos, cambios y devoluciones en La Flor de Malaura: 14 días para devolver tu pedido, recogida gratis en tienda y envío gratis desde 40 €.",
   alternates: { canonical: "/devoluciones" },
 };
 

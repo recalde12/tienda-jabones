@@ -35,6 +35,8 @@ export const siteConfig = {
       country: "ES",
     },
     geo: { lat: 40.2074705, lng: -3.5756814 },
+    // Ficha de Google Business (reseñas, mapa)
+    googlePlaceId: "ChIJsdhiNAAXQg0Rn11LyBDmPE4",
     // Horario de la tienda: el MISMO que la ficha de Google Business. Fuente única para la web
     // (pie, home) y los datos estructurados. Si cambia, cámbialo aquí y en la ficha de Google.
     openingHours: [
@@ -58,6 +60,14 @@ export const siteConfig = {
 };
 
 export type SiteConfig = typeof siteConfig;
+
+const placeId = siteConfig.business.googlePlaceId;
+/** Ficha de la tienda en Google Maps */
+export const GOOGLE_MAPS_PLACE_URL = `https://www.google.com/maps/place/?q=place_id:${placeId}`;
+/** Reseñas de la tienda en Google */
+export const GOOGLE_REVIEWS_URL = `https://search.google.com/local/reviews?placeid=${placeId}`;
+/** Formulario para escribir una reseña en Google */
+export const GOOGLE_WRITE_REVIEW_URL = `https://search.google.com/local/writereview?placeid=${placeId}`;
 
 /** "09:00" -> "9:00" (como se escribe en español). */
 const shortTime = (t: string) => t.replace(/^0/, "");

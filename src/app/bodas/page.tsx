@@ -12,14 +12,15 @@ import { formatPrice, productPath, type Product } from "@/lib/products";
 import { WHATSAPP_DISPLAY, whatsappUrl } from "@/lib/editorial";
 
 export const metadata: Metadata = {
-  title: "Jabones personalizados para bautizos, comuniones, bodas y eventos",
+  title: "Jabones personalizados para bautizos, bodas y eventos",
   description:
-    "Detalles de jabón artesanal para tus invitados en bautizos, comuniones, bodas, empresas y cualquier celebración. Elegimos contigo aroma, color, presentación y etiqueta personalizada. Hechos a mano en San Martín de la Vega (Madrid).",
+    "Detalles de jabón artesanal con etiqueta personalizada para bautizos, comuniones, bodas y empresas. Tú eliges aroma, color y presentación.",
   alternates: { canonical: "/bodas" },
   openGraph: {
-    title: "Jabones personalizados para eventos | La Flor de Malaura",
+    title: "Jabones personalizados para bautizos, bodas y eventos | La Flor de Malaura",
     description: "Detalles de jabón artesanal para tus invitados, con etiqueta personalizada. Elegimos contigo aroma, color y presentación.",
     url: "/bodas",
+    images: [{ url: "/eventos/bautizo-margaritas-blancas.jpg", width: 1100, height: 1003, alt: "Margaritas de jabón con etiqueta personalizada para un bautizo" }],
   },
 };
 

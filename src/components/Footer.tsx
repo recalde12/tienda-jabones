@@ -3,12 +3,18 @@
 
 import Link from "next/link";
 import { CookieSettingsButton } from "@/components/CookieBanner";
+import { GIFT_PAGE, NEED_PAGES } from "@/lib/landing";
 import { siteConfig, openingHoursLines } from "@/lib/site";
 
-const navLinks = [
-  { href: "/", label: "Inicio" },
-  { href: "/productos", label: "Jabones" },
+// Tienda: catálogo y páginas de aterrizaje (enlazado interno para Google)
+const shopLinks = [
+  { href: "/productos", label: "Jabones artesanales" },
+  { href: GIFT_PAGE.path, label: GIFT_PAGE.name },
+  ...NEED_PAGES.map((p) => ({ href: p.path, label: p.linkText.charAt(0).toUpperCase() + p.linkText.slice(1) })),
   { href: "/bodas", label: "Bodas y eventos" },
+];
+
+const navLinks = [
   { href: "/devoluciones", label: "Envíos y devoluciones" },
   { href: "/perfil", label: "Mi perfil" },
   { href: "/pedidos", label: "Mis pedidos" },
@@ -26,10 +32,10 @@ export function Footer() {
   return (
     <footer className="bg-espresso text-latte">
       <div className="container mx-auto px-4 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-10">
 
           {/* --- Marca --- */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div className="sm:col-span-2 lg:col-span-4 xl:col-span-1">
             <Link href="/" className="inline-flex flex-col leading-tight">
               <span className="text-xs font-light tracking-[0.3em] text-latte uppercase">
                 La Flor de
@@ -72,10 +78,26 @@ export function Footer() {
             </div>
           </div>
 
-          {/* --- Navegación --- */}
+          {/* --- Tienda --- */}
           <div>
             <h3 className="text-sm font-semibold text-cream uppercase tracking-wider mb-4">
-              Navegación
+              Tienda
+            </h3>
+            <ul className="space-y-3 text-sm">
+              {shopLinks.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-latte hover:text-white transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* --- Ayuda --- */}
+          <div>
+            <h3 className="text-sm font-semibold text-cream uppercase tracking-wider mb-4">
+              Ayuda
             </h3>
             <ul className="space-y-3 text-sm">
               {navLinks.map((link) => (

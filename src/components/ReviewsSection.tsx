@@ -3,12 +3,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { GOOGLE_REVIEWS_URL, GOOGLE_WRITE_REVIEW_URL } from "@/lib/site";
 
 // NOTA: No usamos reseñas de ejemplo/ficticias. Mostrar reseñas falsas es engañoso
 // y contrario a la normativa de protección al consumidor. Solo se muestran reseñas
 // REALES obtenidas de Google; si no hay, la sección se oculta por completo.
 
-const GOOGLE_REVIEWS_URL = "https://search.google.com/local/reviews?placeid=ChIJsdhiNAAXQg0Rn11LyBDmPE4";
 const MAX_REVIEWS = 3;
 const MAX_CHARS = 220;
 
@@ -113,7 +113,7 @@ export function ReviewsSection() {
           ))}
         </div>
 
-        <div>
+        <div className="flex flex-wrap gap-3">
           <a
             href={GOOGLE_REVIEWS_URL}
             target="_blank"
@@ -121,6 +121,15 @@ export function ReviewsSection() {
             className="inline-flex items-center min-h-[48px] px-7 rounded-full border-2 border-espresso text-espresso font-bold hover:bg-espresso hover:text-cream transition-colors"
           >
             Ver todas las reseñas en Google
+          </a>
+          {/* Las reseñas son lo que más pesa en Google Maps: ponerlo fácil a quien ya ha comprado */}
+          <a
+            href={GOOGLE_WRITE_REVIEW_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center min-h-[48px] px-7 rounded-full bg-espresso text-cream font-bold hover:bg-black transition-colors"
+          >
+            ¿Ya nos conoces? Déjanos tu reseña
           </a>
         </div>
       </div>

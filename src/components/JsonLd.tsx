@@ -2,8 +2,37 @@
 // Datos estructurados (schema.org) para que Google entienda mejor el negocio y la tienda.
 // Se renderizan como <script type="application/ld+json"> en el <head>.
 
-import { siteConfig, SITE_URL } from "@/lib/site";
+import { GOOGLE_MAPS_PLACE_URL, siteConfig, SITE_URL } from "@/lib/site";
 import { cleanDescription, productPath, type Product } from "@/lib/products";
+import { FREE_SHIPPING_OVER, SHIPPING_COST } from "@/lib/shipping";
+import { MAPS_URL } from "@/lib/editorial";
+
+/**
+ * Política de devoluciones (la de /devoluciones): 14 días, en tienda o por correo, y el envío
+ * de vuelta lo paga el cliente. Google la muestra en los resultados de productos.
+ */
+const RETURN_POLICY = {
+  "@type": "MerchantReturnPolicy",
+  applicableCountry: "ES",
+  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+  merchantReturnDays: 14,
+  returnMethod: ["https://schema.org/ReturnInStore", "https://schema.org/ReturnByMail"],
+  returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
+  merchantReturnLink: `${SITE_URL}/devoluciones`,
+};
+
+/** Envío a España: 4,50 €, gratis si el pedido supera 40 € (lib/shipping). */
+function shippingDetails(price: number) {
+  return {
+    "@type": "OfferShippingDetails",
+    shippingRate: {
+      "@type": "MonetaryAmount",
+      value: price > FREE_SHIPPING_OVER ? 0 : SHIPPING_COST,
+      currency: "EUR",
+    },
+    shippingDestination: { "@type": "DefinedRegion", addressCountry: "ES" },
+  };
+}
 
 function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   return (
@@ -54,7 +83,12 @@ export function LocalBusinessJsonLd() {
           opens: h.opens,
           closes: h.closes,
         })),
-        sameAs: [social.instagram, social.facebook],
+        hasMap: MAPS_URL,
+        currenciesAccepted: "EUR",
+        paymentAccepted: "Efectivo, tarjeta",
+        areaServed: { "@type": "Country", name: "España" },
+        hasMerchantReturnPolicy: RETURN_POLICY,
+        sameAs: [social.instagram, social.facebook, GOOGLE_MAPS_PLACE_URL],
       },
       {
         "@type": "WebSite",
@@ -109,9 +143,30 @@ function productSchema(p: Product) {
       itemCondition: "https://schema.org/NewCondition",
       // El stock de la BD no es real: todo lo que está en el catálogo se puede comprar.
       availability: "https://schema.org/InStock",
+      shippingDetails: shippingDetails(Number(p.price)),
+      hasMerchantReturnPolicy: RETURN_POLICY,
       seller: { "@id": `${SITE_URL}/#business` },
     },
   };
+}
+
+/**
+ * Lista de páginas de producto (para las páginas de aterrizaje): solo URLs, sin repetir
+ * los datos de cada producto, que ya están en su propia ficha.
+ */
+export function ItemListJsonLd({ name, products }: { name: string; products: Product[] }) {
+  if (!products.length) return null;
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    itemListElement: products.map((p, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${SITE_URL}${productPath(p)}`,
+    })),
+  };
+  return <JsonLdScript data={data} />;
 }
 
 /**

@@ -17,6 +17,7 @@ import {
   WHATSAPP_DISPLAY,
   whatsappUrl,
 } from "@/lib/editorial";
+import { GIFT_PAGE, needPageFor } from "@/lib/landing";
 import { openingHoursLines, siteConfig } from "@/lib/site";
 
 const eyebrow = "text-[13px] font-bold tracking-[0.18em] uppercase text-honey-dark";
@@ -35,15 +36,19 @@ export default async function HomePage() {
   const bySlug = indexBySlug(products);
 
   // Buscador: solo jabones que existen en el catálogo y tienen texto editorial
-  const needs: FinderNeed[] = SKIN_NEEDS.map((need) => ({
-    id: need.id,
-    label: need.label,
-    cards: need.slugs.flatMap((slug) => {
-      const p = bySlug.get(slug);
-      const notes = PRODUCT_NOTES[slug];
-      return p && notes ? [{ name: p.name, href: productPath(p), image: p.image_url, priceLabel: priceLabel(p), why: notes.why }] : [];
-    }),
-  })).filter((need) => need.cards.length > 0);
+  const needs: FinderNeed[] = SKIN_NEEDS.map((need) => {
+    const page = needPageFor(need.slugs[0]);
+    return {
+      id: need.id,
+      label: need.label,
+      cards: need.slugs.flatMap((slug) => {
+        const p = bySlug.get(slug);
+        const notes = PRODUCT_NOTES[slug];
+        return p && notes ? [{ name: p.name, href: productPath(p), image: p.image_url, priceLabel: priceLabel(p), why: notes.why }] : [];
+      }),
+      ...(page ? { page: { href: page.path, label: `Ver todos los ${page.linkText}` } } : {}),
+    };
+  }).filter((need) => need.cards.length > 0);
 
   const featured = FEATURED_SLUGS.flatMap((slug) => {
     const p = bySlug.get(slug);
@@ -196,10 +201,10 @@ export default async function HomePage() {
       {(cesta || packDuo) && (
         <section className="container mx-auto px-4 py-16 sm:py-20 flex flex-wrap gap-6">
           {cesta && (
-            <Link href={productPath(cesta)} className="group relative flex-1 basis-[420px] min-w-0 h-[320px] sm:h-[380px] rounded-[26px] overflow-hidden text-cream">
-              <Image src={cesta.image_url} alt={cesta.name} fill sizes="(max-width: 900px) 100vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+            <Link href={GIFT_PAGE.path} className="group relative flex-1 basis-[420px] min-w-0 h-[320px] sm:h-[380px] rounded-[26px] overflow-hidden text-cream">
+              <Image src={cesta.image_url} alt={`${cesta.name}: cesta de regalo de jabones artesanales`} fill sizes="(max-width: 900px) 100vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
               <div className="absolute inset-x-0 bottom-0 p-7 bg-gradient-to-t from-espresso/90 to-transparent">
-                <div className="font-serif text-[28px] sm:text-[30px] font-semibold">Cestas regalo</div>
+                <div className="font-serif text-[28px] sm:text-[30px] font-semibold">Cestas de regalo</div>
                 <div className="text-base pt-1">Para convertir el baño en un pequeño spa · {cesta.name} {formatPrice(cesta.price)}</div>
               </div>
             </Link>

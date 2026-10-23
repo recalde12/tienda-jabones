@@ -11,6 +11,7 @@ import { InfoTabs, type InfoTab } from "@/components/InfoTabs";
 import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/JsonLd";
 import { getCatalog, indexBySlug } from "@/lib/catalog";
 import { PRODUCT_NOTES, variantsFor } from "@/lib/editorial";
+import { needPageFor } from "@/lib/landing";
 import {
   CATEGORY_LABELS,
   SOAP_CATEGORIES,
@@ -19,8 +20,8 @@ import {
   formatWeight,
   productPath,
   slugify,
-  toMetaDescription,
 } from "@/lib/products";
+import { productSeo } from "@/lib/seo";
 import { FREE_SHIPPING_OVER, SHIPPING_COST } from "@/lib/shipping";
 
 type Props = { params: { slug: string } };
@@ -34,21 +35,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { product } = await getProduct(params.slug);
   if (!product) return {};
 
-  const description = toMetaDescription(
-    cleanDescription(product.description) || `${product.name}, jabón artesanal natural hecho a mano.`
-  );
+  // Título y descripción con lo que la gente busca («jabón de avena y miel»…), ver lib/seo.ts
+  const seo = productSeo(product, params.slug);
   const path = productPath(product);
 
   return {
-    title: product.name,
-    description,
+    title: seo.title,
+    description: seo.description,
     alternates: { canonical: path },
     openGraph: {
       type: "website",
-      title: `${product.name} | La Flor de Malaura`,
-      description,
+      title: `${seo.title} | La Flor de Malaura`,
+      description: seo.description,
       url: path,
-      images: [{ url: product.image_url, alt: product.name }],
+      images: [{ url: product.image_url, alt: `${product.name}: ${seo.headline.toLowerCase()}` }],
     },
   };
 }
@@ -69,6 +69,8 @@ export default async function ProductPage({ params }: Props) {
 
   const slug = slugify(product.name);
   const notes = PRODUCT_NOTES[slug];
+  const seo = productSeo(product, slug);
+  const needPage = needPageFor(slug);
   const bySlug = indexBySlug(products);
   const description = cleanDescription(product.description);
   const weight = formatWeight(product);
@@ -129,7 +131,7 @@ export default async function ProductPage({ params }: Props) {
             <div className="relative aspect-square rounded-[26px] overflow-hidden bg-sand">
               <Image
                 src={product.image_url}
-                alt={product.name}
+                alt={`${product.name}: ${seo.headline.toLowerCase()}`}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -146,6 +148,7 @@ export default async function ProductPage({ params }: Props) {
                   </span>
                 )}
                 <h1 className="font-serif text-4xl lg:text-[52px] font-semibold leading-[1.05]">{product.name}</h1>
+                <p className="text-lg text-cocoa">{seo.headline}</p>
               </div>
 
               <div className="flex items-center gap-4">
@@ -181,6 +184,12 @@ export default async function ProductPage({ params }: Props) {
                     <li key={chip} className="px-4 py-2 rounded-full border border-edge text-sm font-bold">{chip}</li>
                   ))}
                 </ul>
+              )}
+
+              {needPage && (
+                <Link href={needPage.path} className="self-start font-bold text-honey-dark underline underline-offset-4">
+                  Ver todos los {needPage.linkText} →
+                </Link>
               )}
 
               {variantGroup && variantOptions.length > 1 && (

@@ -13,7 +13,7 @@ import { FREE_SHIPPING_OVER } from '@/lib/shipping';
 
 const navItems = [
   { href: '/productos', label: 'Jabones' },
-  { href: '/productos?categoria=cestas', label: 'Cestas y packs' },
+  { href: '/cestas-de-regalo', label: 'Cestas de regalo' },
   { href: '/bodas', label: 'Bodas y eventos' },
   { href: '/#historia', label: 'Nuestra historia' },
   { href: '/#club', label: 'Club Malaura' },

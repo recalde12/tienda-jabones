@@ -16,7 +16,8 @@ export type FinderCard = {
   why: string;
 };
 
-export type FinderNeed = { id: string; label: string; cards: FinderCard[] };
+/** `page`: página con todos los jabones para esa necesidad (si existe). */
+export type FinderNeed = { id: string; label: string; cards: FinderCard[]; page?: { href: string; label: string } };
 
 export function SkinFinder({ needs }: { needs: FinderNeed[] }) {
   const [selected, setSelected] = useState(needs[0]?.id);
@@ -65,6 +66,12 @@ export function SkinFinder({ needs }: { needs: FinderNeed[] }) {
           </article>
         ))}
       </div>
+
+      {current.page && (
+        <Link href={current.page.href} className="self-start font-bold text-honey-dark underline underline-offset-4">
+          {current.page.label} →
+        </Link>
+      )}
     </div>
   );
 }

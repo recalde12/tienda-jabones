@@ -27,7 +27,9 @@ export const metadata: Metadata = {
     default: "Jabones artesanales en San Martín de la Vega (Madrid) | La Flor de Malaura",
     template: "%s | La Flor de Malaura",
   },
-  description: siteConfig.description,
+  // Meta descripción de la home (≤155 caracteres para que Google no la corte)
+  description:
+    "Jabones artesanales naturales hechos a mano por Laura y María en San Martín de la Vega (Madrid). Sin parabenos ni sulfatos. Envíos a toda España.",
   keywords: [
     "jabones artesanales",
     "jabones naturales",
@@ -108,7 +110,8 @@ export default async function RootLayout({
               __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});try{if(localStorage.getItem('cookie-consent')==='granted'){gtag('consent','update',{ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',analytics_storage:'granted'});}}catch(e){}`,
             }} />
             {/* Google Tag Manager */}
-            <Script id="gtm" strategy="afterInteractive" dangerouslySetInnerHTML={{
+            {/* lazyOnload: GTM se descarga cuando la página ya ha cargado, para no frenarla (mejor LCP/INP) */}
+            <Script id="gtm" strategy="lazyOnload" dangerouslySetInnerHTML={{
               __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${GTM_ID}');`,
             }} />
             {/* Google Tag Manager (noscript) */}
