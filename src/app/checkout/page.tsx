@@ -228,6 +228,12 @@ function CheckoutForm({
         <span>{isLoading ? "Procesando..." : `Pagar ${fmt(precioFinal)}`}</span>
       </button>
 
+      <p className="text-xs text-stone-500 text-center leading-relaxed">
+        Usamos tus datos para gestionar tu pedido. Consulta la{" "}
+        <a href="/privacidad" className="underline">política de privacidad</a> y la{" "}
+        <a href="/devoluciones" className="underline">política de devoluciones</a>.
+      </p>
+
       {message && (
         <div className={`mt-4 p-3 rounded text-center text-sm ${message.includes("éxito") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
           {message}

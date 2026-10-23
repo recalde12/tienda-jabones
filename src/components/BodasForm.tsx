@@ -123,7 +123,8 @@ export function BodasForm() {
       </div>
 
       <p className="sm:col-span-2 text-sm text-cocoa leading-relaxed">
-        Te responderemos por email. Usamos tus datos solo para preparar tu presupuesto.
+        Te responderemos por email. Usamos tus datos solo para preparar tu presupuesto.{" "}
+        <a href="/privacidad" className="font-bold text-honey-dark underline underline-offset-4">Política de privacidad</a>
       </p>
 
       {status.state === "error" && (

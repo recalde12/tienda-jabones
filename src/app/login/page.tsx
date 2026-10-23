@@ -3,6 +3,7 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -55,6 +56,10 @@ export default function LoginPage() {
           }}
         />
       </div>
+      <p className="mt-6 text-sm text-cocoa text-center leading-relaxed">
+        Al crear tu cuenta, tratamos tus datos según nuestra{" "}
+        <Link href="/privacidad" className="font-bold text-honey-dark underline underline-offset-4">política de privacidad</Link>.
+      </p>
     </div>
   );
 }

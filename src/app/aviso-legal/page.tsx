@@ -62,7 +62,10 @@ export default function AvisoLegalPage() {
         </p>
         <p className={p}>
           Las compras que hagas en la tienda online se rigen además por nuestra{" "}
-          <Link href="/devoluciones" className={link}>política de envíos, cambios y devoluciones</Link>.
+          <Link href="/devoluciones" className={link}>política de envíos, cambios y devoluciones</Link>. Cómo tratamos tus
+          datos personales y qué cookies usamos lo explicamos en la{" "}
+          <Link href="/privacidad" className={link}>política de privacidad</Link> y la{" "}
+          <Link href="/cookies" className={link}>política de cookies</Link>.
         </p>
 
         <h2 className={h2}>3. Propiedad intelectual</h2>
