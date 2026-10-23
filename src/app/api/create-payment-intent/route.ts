@@ -3,13 +3,13 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import {
   CartError,
-  evaluateDiscount,
-  findActiveDiscount,
   orderTotal,
   priceCart,
+  resolveDiscount,
   shippingCost,
   type DeliveryMethod,
 } from '@/lib/pricing';
+import { getSessionUserId } from '@/lib/session';
 
 // Inicializamos Stripe con la clave secreta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -35,9 +35,12 @@ export async function POST(request: Request) {
     let discountAmount = 0;
     let appliedCode: string | null = null;
     let discountMessage: string | null = null;
+    let userId: string | null = null;
 
     if (body.discountCode) {
-      const discount = evaluateDiscount(await findActiveDiscount(supabase, body.discountCode), subtotal);
+      // El cliente (cuenta) para el límite de usos por cliente; el webhook registra el uso con él.
+      userId = await getSessionUserId();
+      const discount = await resolveDiscount(supabase, body.discountCode, subtotal, userId);
       if (discount.valid) {
         discountAmount = discount.amount;
         appliedCode = discount.code;
@@ -62,6 +65,7 @@ export async function POST(request: Request) {
         discount_code: appliedCode || 'ninguno',
         discount_amount: discountAmount.toString(),
         subtotal: subtotal.toString(),
+        ...(appliedCode && userId ? { user_id: userId } : {}),
       }
     });
 

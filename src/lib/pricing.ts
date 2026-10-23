@@ -14,6 +14,8 @@ export type DiscountCode = {
   value: number;
   min_amount: number;
   max_uses: number | null;
+  /** Usos máximos por cliente (cuenta). null o ausente = sin límite por cliente. */
+  max_uses_per_customer?: number | null;
   used_count: number;
   active: boolean;
   expires_at: string | null;
@@ -49,14 +51,54 @@ export async function findActiveDiscount(
   return (data as DiscountCode[] | null)?.find((dc) => dc.code.trim().toUpperCase() === wanted) ?? null;
 }
 
-/** Comprueba caducidad, usos y mínimo, y calcula el descuento sobre el subtotal. */
-export function evaluateDiscount(dc: DiscountCode | null, subtotal: number): DiscountResult {
+/**
+ * Usos de un código que ya ha hecho un cliente con pagos confirmados. Los registra
+ * el webhook de Stripe en discount_code_uses.
+ */
+export async function countCustomerUses(
+  supabase: SupabaseClient,
+  discountCodeId: number,
+  userId: string
+): Promise<number> {
+  const { count, error } = await supabase
+    .from("discount_code_uses")
+    .select("id", { count: "exact", head: true })
+    .eq("discount_code_id", discountCodeId)
+    .eq("user_id", userId);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/**
+ * Comprueba caducidad, usos y mínimo, y calcula el descuento sobre el subtotal.
+ * `customerUses`: usos que ya ha hecho este cliente. undefined = no se comprueba el
+ * límite por cliente; null = cliente sin identificar (no puede usar códigos con límite).
+ */
+export function evaluateDiscount(
+  dc: DiscountCode | null,
+  subtotal: number,
+  customerUses?: number | null
+): DiscountResult {
   if (!dc) return { valid: false, message: "Código no válido o no existe." };
   if (dc.expires_at && new Date(dc.expires_at) < new Date()) {
     return { valid: false, message: "Este código ha caducado." };
   }
   if (dc.max_uses !== null && dc.used_count >= dc.max_uses) {
     return { valid: false, message: "Este código ha alcanzado el límite de usos." };
+  }
+  const perCustomer = dc.max_uses_per_customer ?? null;
+  if (perCustomer !== null && customerUses !== undefined) {
+    if (customerUses === null) {
+      return { valid: false, message: "Inicia sesión para usar este código." };
+    }
+    if (customerUses >= perCustomer) {
+      return {
+        valid: false,
+        message: perCustomer === 1
+          ? "Ya has usado este código."
+          : `Ya has usado este código ${perCustomer} veces, el máximo por cliente.`,
+      };
+    }
   }
   const minAmount = Number(dc.min_amount) || 0;
   if (subtotal < minAmount) {
@@ -66,6 +108,27 @@ export function evaluateDiscount(dc: DiscountCode | null, subtotal: number): Dis
   const value = Number(dc.value);
   const amount = dc.type === "percentage" ? (subtotal * value) / 100 : Math.min(value, subtotal);
   return { valid: true, code: dc.code, type: dc.type, value, amount: round2(amount) };
+}
+
+/**
+ * Busca el código y lo evalúa para este cliente, incluido el límite de usos por cliente.
+ * Con `preview` (vista previa del carrito) y sin sesión, el límite por cliente no se
+ * comprueba todavía: se comprueba siempre al pagar, donde la sesión es obligatoria.
+ */
+export async function resolveDiscount(
+  supabase: SupabaseClient,
+  rawCode: unknown,
+  subtotal: number,
+  userId: string | null,
+  { preview = false }: { preview?: boolean } = {}
+): Promise<DiscountResult> {
+  const dc = await findActiveDiscount(supabase, rawCode);
+  let customerUses: number | null | undefined;
+  if (dc && dc.max_uses_per_customer != null) {
+    if (userId) customerUses = await countCustomerUses(supabase, dc.id, userId);
+    else customerUses = preview ? undefined : null;
+  }
+  return evaluateDiscount(dc, subtotal, customerUses);
 }
 
 /** Envío: gratis en recogida o si el subtotal (antes del descuento) supera el umbral. */

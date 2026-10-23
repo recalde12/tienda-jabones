@@ -32,9 +32,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 });
   }
   const body = await request.json();
-  const { code, type, value, min_amount, max_uses, expires_at } = body;
+  const { code, type, value, min_amount, max_uses, max_uses_per_customer, expires_at } = body;
   if (!code || !type || value === undefined) {
     return NextResponse.json({ error: 'Faltan campos obligatorios: code, type, value.' }, { status: 400 });
+  }
+  // Usos por cliente: vacío = sin límite. Solo se envía la columna si hay límite.
+  const perCustomer = max_uses_per_customer ? parseInt(max_uses_per_customer) : null;
+  if (perCustomer !== null && !(perCustomer >= 1)) {
+    return NextResponse.json({ error: 'Los usos por cliente deben ser 1 o más.' }, { status: 400 });
   }
   const { data, error } = await supabase
     .from('discount_codes')
@@ -44,6 +49,7 @@ export async function POST(request: Request) {
       value: parseFloat(value),
       min_amount: parseFloat(min_amount) || 0,
       max_uses: max_uses ? parseInt(max_uses) : null,
+      ...(perCustomer ? { max_uses_per_customer: perCustomer } : {}),
       expires_at: expires_at || null,
       active: true,
     })

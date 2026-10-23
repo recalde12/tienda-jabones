@@ -5,7 +5,8 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { evaluateDiscount, findActiveDiscount } from '@/lib/pricing';
+import { resolveDiscount } from '@/lib/pricing';
+import { getSessionUserId } from '@/lib/session';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,7 +26,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ valid: false, message: 'Importe del carrito no válido.' }, { status: 400 });
     }
 
-    const discount = evaluateDiscount(await findActiveDiscount(supabase, code), subtotal);
+    // Si hay sesión ya avisamos aquí del límite por cliente; si no, se comprueba al pagar.
+    const discount = await resolveDiscount(supabase, code, subtotal, await getSessionUserId(), { preview: true });
     if (!discount.valid) {
       return NextResponse.json({ valid: false, message: discount.message });
     }

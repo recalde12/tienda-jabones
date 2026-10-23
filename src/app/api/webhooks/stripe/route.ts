@@ -28,12 +28,30 @@ async function countDiscountUse(supabaseAdmin: SupabaseClient, paymentIntentId: 
   const code = pi.metadata?.discount_code;
   if (!code || code === 'ninguno' || pi.metadata?.discount_counted === 'yes') return;
 
+  const { data: found } = await supabaseAdmin
+    .from('discount_codes')
+    .select('id')
+    .eq('code', code)
+    .maybeSingle();
+
+  // Uso de este cliente (para el límite de usos por cliente). payment_intent_id es único:
+  // si Stripe reenvía el evento, no se registra dos veces.
+  const userId = pi.metadata?.user_id;
+  if (found && userId) {
+    const { error } = await supabaseAdmin
+      .from('discount_code_uses')
+      .insert({ discount_code_id: found.id, user_id: userId, payment_intent_id: pi.id });
+    if (error && error.code !== '23505') {
+      console.error('❌ Error registrando el uso del código por cliente:', error);
+    }
+  }
+
   // Incremento con control de concurrencia: solo actualiza si nadie lo cambió entre medias.
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; found && attempt < 3; attempt++) {
     const { data: dc } = await supabaseAdmin
       .from('discount_codes')
       .select('id, used_count')
-      .eq('code', code)
+      .eq('id', found.id)
       .maybeSingle();
     if (!dc) break;
 

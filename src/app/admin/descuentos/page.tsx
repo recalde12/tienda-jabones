@@ -14,11 +14,22 @@ interface DiscountCode {
   value: number;
   min_amount: number;
   max_uses: number | null;
+  max_uses_per_customer?: number | null;
   used_count: number;
   active: boolean;
   expires_at: string | null;
   created_at: string;
 }
+
+const EMPTY_FORM = {
+  code: "",
+  type: "percentage",
+  value: "",
+  min_amount: "",
+  max_uses: "",
+  max_uses_per_customer: "",
+  expires_at: "",
+};
 
 function fmt(n: number) {
   return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(n);
@@ -32,14 +43,7 @@ export default function AdminDescuentosPage() {
   const [actionMsg, setActionMsg] = useState("");
 
   // Formulario nuevo código
-  const [form, setForm] = useState({
-    code: "",
-    type: "percentage",
-    value: "",
-    min_amount: "",
-    max_uses: "",
-    expires_at: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
@@ -123,6 +127,7 @@ export default function AdminDescuentosPage() {
         value: form.value,
         min_amount: form.min_amount || "0",
         max_uses: form.max_uses || null,
+        max_uses_per_customer: form.max_uses_per_customer || null,
         expires_at: form.expires_at || null,
       }),
     });
@@ -132,7 +137,7 @@ export default function AdminDescuentosPage() {
 
     if (res.ok) {
       setActionMsg(`Código "${data.code}" creado correctamente.`);
-      setForm({ code: "", type: "percentage", value: "", min_amount: "", max_uses: "", expires_at: "" });
+      setForm(EMPTY_FORM);
       fetchCodes();
     } else {
       setFormError(data.error || "Error al crear el código.");
@@ -234,6 +239,19 @@ export default function AdminDescuentosPage() {
             </div>
 
             <div>
+              <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">Usos por cliente</label>
+              <input
+                type="number"
+                placeholder="Vacío = sin límite"
+                min="1"
+                value={form.max_uses_per_customer}
+                onChange={(e) => setForm({ ...form, max_uses_per_customer: e.target.value })}
+                className="w-full border border-stone-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-stone-500 outline-none"
+              />
+              <p className="text-xs text-stone-400 mt-1">Veces que cada cliente (cuenta) puede usarlo. 1 = un solo uso.</p>
+            </div>
+
+            <div>
               <label className="block text-xs font-semibold text-stone-500 mb-1 uppercase">Fecha de caducidad</label>
               <input
                 type="datetime-local"
@@ -299,6 +317,11 @@ export default function AdminDescuentosPage() {
                       </td>
                       <td className="px-4 py-3 text-stone-500">
                         {c.used_count} / {c.max_uses ?? "∞"}
+                        {c.max_uses_per_customer != null && (
+                          <span className="block text-xs text-stone-400">
+                            Máx. {c.max_uses_per_customer} por cliente
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-stone-500">
                         {c.expires_at
