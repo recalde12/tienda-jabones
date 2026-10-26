@@ -132,6 +132,31 @@ function CheckoutForm({
 
         if (itemsError) throw itemsError;
 
+        // Analítica: compra completada (activador «Compra» de Tag Manager). Solo llega a Google
+        // Analytics si el cliente aceptó las cookies de análisis; nunca debe frenar el pedido.
+        try {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ ecommerce: null });
+          window.dataLayer.push({
+            event: 'purchase',
+            ecommerce: {
+              transaction_id: paymentIntent.id,
+              value: precioFinal,
+              shipping: precioEnvio,
+              currency: 'EUR',
+              ...(pricing.discountCode ? { coupon: pricing.discountCode } : {}),
+              items: cart.map((item) => ({
+                item_id: String(item.id),
+                item_name: item.name,
+                price: pricing.unitPrices[item.id] ?? item.price,
+                quantity: item.quantity,
+              })),
+            },
+          });
+        } catch {
+          /* noop */
+        }
+
         // El uso del código de descuento lo cuenta el webhook de Stripe al confirmarse el pago.
         router.push(`/success?payment_intent=${paymentIntent.id}`);
 

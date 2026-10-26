@@ -62,6 +62,9 @@ export function CookieBanner() {
         ad_user_data: value,
         ad_personalization: value,
       });
+      // Aviso para Tag Manager: la etiqueta de Analytics exige consentimiento, así que con
+      // este evento empieza a medir en esta misma página (activador «Consentimiento aceptado»)
+      if (granted) window.dataLayer.push({ event: "consent_granted" });
     } catch {
       /* noop */
     }
